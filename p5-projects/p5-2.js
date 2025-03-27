@@ -1,4 +1,4 @@
-///<reference path="../../lib/p5.global.d.ts" />
+///<reference path="../../../lib/p5.global.d.ts" />
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -52,8 +52,8 @@ function draw() {
 
 function drawCircle(x, y, color) {
   // fill(color, 255 - color, 255 - color / 2);
-  fill(color, 255 - color / 2, 255 - color);
-  // fill(255 - color, 255 - color / 2, color);
+  // fill(color, 255 - color / 2, 255 - color);
+  fill(255 - color, 255 - color / 2, color);
   // fill(255 - color / 2, 255 - color, color);
 
   ellipse(x, y, d);

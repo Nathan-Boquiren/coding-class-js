@@ -1,4 +1,4 @@
-///<reference path="../../lib/p5.global.d.ts" />
+///<reference path="../../../lib/p5.global.d.ts" />
 
 let cl = console.log;
 

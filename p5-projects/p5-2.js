@@ -1,4 +1,4 @@
-///<reference path="../../../lib/p5.global.d.ts" />
+///<reference path="../lib/p5.global.d.ts" />
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -8,13 +8,13 @@ let color = 255;
 let cInc = 15;
 let x = 0;
 let y = 0;
-let yInc = 10;
-let xInc = 10;
+let yInc = 20;
+let xInc = 20;
 let d = 10;
 let rInc = 10;
 
 function draw() {
-  // background(0);
+  background(0);
   noStroke();
 
   drawCircle(x, y, color);
@@ -29,19 +29,19 @@ function draw() {
   }
 
   if (y >= height - d / 2) {
-    yInc = -10;
+    yInc = -Math.abs(yInc);
     color += cInc;
     d += rInc;
   } else if (y <= d / 2) {
-    yInc = 10;
+    yInc = Math.abs(yInc);
     color += cInc;
     d += rInc;
   } else if (x >= width - d / 2) {
-    xInc = -10;
+    xInc = -Math.abs(xInc);
     color += cInc;
     d += rInc;
   } else if (x <= d / 2) {
-    xInc = 10;
+    xInc = Math.abs(xInc);
     color += cInc;
     d += rInc;
   }
@@ -52,8 +52,8 @@ function draw() {
 
 function drawCircle(x, y, color) {
   // fill(color, 255 - color, 255 - color / 2);
-  // fill(color, 255 - color / 2, 255 - color);
-  fill(255 - color, 255 - color / 2, color);
+  fill(color, 255 - color / 2, 255 - color);
+  // fill(255 - color, 255 - color / 2, color);
   // fill(255 - color / 2, 255 - color, color);
 
   ellipse(x, y, d);

@@ -19,19 +19,22 @@ let playerImg = {
   link: undefined,
 };
 
-let targetImg = {
-  width: 530,
-  height: 480,
-  links: [undefined, undefined, undefined],
-};
+// let targetImg = {
+//   width: 530,
+//   height: 480,
+//   links: [undefined, undefined, undefined],
+// };
+
+let targetImg;
 
 // ========== Preload ==========
 
 function preload() {
   playerImg.link = loadImage("imgs/player.png");
-  targetImg.links[0] = loadImage("imgs/target-1.png");
-  targetImg.links[1] = loadImage("imgs/target-2.png");
-  targetImg.links[2] = loadImage("imgs/target-3.png");
+  // targetImg.links[0] = loadImage("imgs/target-1.png");
+  // targetImg.links[1] = loadImage("imgs/target-2.png");
+  // targetImg.links[2] = loadImage("imgs/target-3.png");
+  targetImg = loadImage("imgs/target-1.png");
 }
 
 // ========== Classes ==========
@@ -69,8 +72,8 @@ class laser {
   shoot() {
     this.y -= this.velocity;
     if (this.y <= -17) {
-      let laserIndex = lasers.indexOf(this);
-      lasers.splice(laserIndex, 1);
+      let index = lasers.indexOf(this);
+      lasers.splice(index, 1);
     }
   }
 
@@ -84,12 +87,22 @@ class laser {
 
 class target {
   constructor() {
-    this.x = random(width);
+    this.x = random(170, width - 170);
     this.y = 0;
+    this.velocity = 5;
     this.img = targetImg;
   }
+
   spawn() {
-    image(this.img.links[0], this.x, this.y, this.img.width, this.img.height);
+    image(this.img, this.x, this.y - 154, 170, 154);
+  }
+
+  animate() {
+    this.y += this.velocity;
+    if (this.y >= height + 154) {
+      let index = targets.indexOf(this);
+      targets.splice(index, 1);
+    }
   }
 }
 
@@ -102,11 +115,6 @@ function setup() {
   // Bg
   for (let i = 0; i < 200; i++) {
     stars.push(new star());
-  }
-
-  // Targets first wave
-  for (let i = 0; i < 10; i++) {
-    targets.push(new target());
   }
 }
 
@@ -131,13 +139,14 @@ function draw() {
   });
 
   // Targets
-
   if (frameCount % 60 === 0) {
-    targets.forEach((target) => {
-      target.spawn();
-      target.move();
-    });
+    targets.push(new target());
   }
+
+  targets.forEach((target) => {
+    target.spawn();
+    target.animate();
+  });
 }
 
 // ========== Mouse Clicked ==========

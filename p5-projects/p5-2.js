@@ -14,12 +14,12 @@ let d = 10;
 let rInc = 10;
 
 function draw() {
-  background(0);
+  // background(0);
   noStroke();
 
   drawCircle(x, y, color);
-  drawCircle(x, height - y, color);
-  drawCircle(width - x, height - y, 255 - color);
+  drawCircle(x, height - y, 255 - color);
+  drawCircle(width - x, height - y, color);
   drawCircle(width - x, y, 255 - color);
 
   if (color >= 255) {

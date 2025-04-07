@@ -30,22 +30,21 @@ class Shape {
       this.vy = -this.vy;
     }
 
-    shapes.forEach((otherShape) => {
-      if (otherShape !== this) {
-        let distance = dist(this.x, this.y, otherShape.x, otherShape.y);
-        if (distance < this.radius + otherShape.radius) {
-          this.vx = -this.vx;
-          this.vy = -this.vy;
-        }
-      }
-    });
+    // shapes.forEach((otherShape) => {
+    //   if (otherShape !== this) {
+    //     let distance = dist(this.x, this.y, otherShape.x, otherShape.y);
+    //     if (distance < this.radius + otherShape.radius) {
+    //       this.vx = -this.vx;
+    //       this.vy = -this.vy;
+    //     }
+    //   }
+    // });
   }
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
 }
-
 function mouseClicked() {
   let randR = random(255);
   let randG = random(255);

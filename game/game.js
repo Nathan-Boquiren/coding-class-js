@@ -35,7 +35,11 @@ function preload() {
   // targetImg.links[0] = loadImage("imgs/target-1.png");
   // targetImg.links[1] = loadImage("imgs/target-2.png");
   // targetImg.links[2] = loadImage("imgs/target-3.png");
-  targetImg = loadImage("imgs/target-1.png");
+  targetImg = {
+    hp_3: loadImage("imgs/target-1-hp-3.png"),
+    hp_2: loadImage("imgs/target-1-hp-2.png"),
+    hp_1: loadImage("imgs/target-1-hp-1.png"),
+  };
 }
 
 // ========== Classes ==========
@@ -92,11 +96,17 @@ class target {
     this.x = random(170, width - 170);
     this.y = 0;
     this.velocity = 5;
-    this.img = targetImg;
+    this.img = targetImg.hp_3;
     this.hp = 3;
   }
 
   spawn() {
+    if (this.hp === 2) {
+      this.img = targetImg.hp_2;
+    } else if (this.hp === 1) {
+      this.img = targetImg.hp_1;
+    } else {
+    }
     image(this.img, this.x, this.y - 154, 170, 154);
   }
 
@@ -176,7 +186,6 @@ function checkCollision() {
       if (xAligned && yAligned && laser.impact === false) {
         updateTargetHp(target, laser);
         laser.impact = true;
-        // break;
       }
     });
   });

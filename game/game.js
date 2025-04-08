@@ -9,10 +9,12 @@ let lasers = [];
 let targets = [];
 
 let lvl = 1;
-let score = 0;
+let hc = 0;
 let lives = 3;
 
-let targetSpawnInterval = 5;
+let lvlIncreaseFactor = 10;
+let targetSpawnRate = 60;
+let targetVelocity = 4;
 
 let playerImg = {
   width: 430,
@@ -20,11 +22,7 @@ let playerImg = {
   link: undefined,
 };
 
-// let targetImg = {
-//   width: 530,
-//   height: 480,
-//   links: [undefined, undefined, undefined],
-// };
+let plr;
 
 let targetImg;
 
@@ -32,9 +30,6 @@ let targetImg;
 
 function preload() {
   playerImg.link = loadImage("imgs/player.png");
-  // targetImg.links[0] = loadImage("imgs/target-1.png");
-  // targetImg.links[1] = loadImage("imgs/target-2.png");
-  // targetImg.links[2] = loadImage("imgs/target-3.png");
   targetImg = {
     hp_3: loadImage("imgs/target-1-hp-3.png"),
     hp_2: loadImage("imgs/target-1-hp-2.png"),
@@ -65,14 +60,38 @@ class star {
   }
 }
 
+class player {
+  constructor() {
+    this.width = 86;
+    this.halfWidth = this.width / 2;
+    this.height = 98;
+    this.x = 0;
+    this.y = height - 130;
+  }
+
+  control() {
+    if (mouseX <= this.halfWidth) {
+      this.x = 0;
+    } else if (mouseX >= width - this.halfWidth) {
+      this.x = width - this.width;
+    } else {
+      this.x = mouseX - this.halfWidth;
+    }
+  }
+  create() {
+    image(playerImg.link, this.x, this.y, this.width, this.height);
+  }
+}
+
 class laser {
   constructor(mX) {
     this.x = mX;
-    this.y = height - 290;
+    this.y = plr.y + 25;
     this.velocity = 10;
-    this.width = 10;
-    this.height = 35;
+    this.width = 5;
+    this.height = 20;
     this.impact = false;
+    this.passed = false;
   }
 
   shoot() {
@@ -93,11 +112,14 @@ class laser {
 
 class target {
   constructor() {
-    this.x = random(170, width - 170);
+    this.width = 96;
+    this.height = 82;
+    this.x = random(this.width, width - this.width);
     this.y = 0;
-    this.velocity = 5;
+    this.velocity = random(targetVelocity, targetVelocity + 3);
     this.img = targetImg.hp_3;
     this.hp = 3;
+    this.passed = false;
   }
 
   spawn() {
@@ -107,12 +129,12 @@ class target {
       this.img = targetImg.hp_1;
     } else {
     }
-    image(this.img, this.x, this.y - 154, 170, 154);
+    image(this.img, this.x, this.y - this.height, this.width, this.height);
   }
 
   animate() {
     this.y += this.velocity;
-    if (this.y >= height + 154) {
+    if (this.y >= height + this.height) {
       let index = targets.indexOf(this);
       targets.splice(index, 1);
     }
@@ -122,8 +144,7 @@ class target {
 // ========== Setup ==========
 
 function setup() {
-  // createCanvas(1000, 600);
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(1100, 550);
 
   // Bg
   for (let i = 0; i < 200; i++) {
@@ -143,11 +164,16 @@ function draw() {
   });
 
   // Player
-  image(playerImg.link, mouseX - 70, height - 250, 140, 140 * (49 / 43));
+
+  plr = new player();
+  plr.control();
+  plr.create();
 
   // Targets
-  if (frameCount % 60 === 0) {
-    targets.push(new target());
+  if (frameCount % targetSpawnRate === 0) {
+    for (let i = 0; i < Math.min(1 + Math.floor(lvl / 5), 3); i++) {
+      targets.push(new target());
+    }
   }
 
   targets.forEach((target) => {
@@ -161,9 +187,23 @@ function draw() {
     laser.shoot();
   });
 
-  // Check Laser and Target Collision
+  // Check Laser and Target Collision / Pass
   checkCollision();
+  checkTargetPass();
+  checkLaserPass();
+
+  // Lvl Progress Bar
+  push();
+  progressBar();
+  pop();
+
+  // DOM Info Elements
+
+  document.getElementById("lvl").innerText = lvl;
+  document.getElementById("lives").innerText = lives.toFixed(1);
 }
+
+// COllision And Target Pass Check
 
 function checkCollision() {
   lasers.forEach((laser) => {
@@ -183,11 +223,38 @@ function checkCollision() {
       let xAligned = lRight > tLeft && lLeft < tRight;
       let yAligned = lTop <= target.y;
 
-      if (xAligned && yAligned && laser.impact === false) {
+      if (
+        xAligned &&
+        yAligned &&
+        laser.impact === false &&
+        laser.passed === false &&
+        target.passed === false
+      ) {
         updateTargetHp(target, laser);
         laser.impact = true;
       }
     });
+  });
+}
+
+function checkTargetPass() {
+  targets.forEach((target) => {
+    if (target.y >= plr.y && target.passed === false) {
+      lives -= 0.5;
+      target.passed = true;
+    }
+    if (lives <= 0) {
+      lives = 0;
+      endGame();
+    }
+  });
+}
+
+function checkLaserPass() {
+  lasers.forEach((laser) => {
+    if (laser.y <= 0) {
+      laser.passed = true;
+    }
   });
 }
 
@@ -199,12 +266,63 @@ function updateTargetHp(target, laser) {
   if (target.hp <= 0) {
     let index = targets.indexOf(target);
     targets.splice(index, 1);
+
+    // Increase Hit Count
+    increaseHc();
   }
+}
+
+// Increase Hit Count
+
+function increaseHc() {
+  hc++;
+  if (hc % lvlIncreaseFactor === 0) {
+    increaseLvl();
+  }
+}
+
+// Increase Lvl and Difficulty
+
+function increaseLvl() {
+  lvl++;
+  hc = 0;
+  lvlIncreaseFactor++;
+  targetVelocity += 0.5;
+
+  if (targetSpawnRate > 45) {
+    targetSpawnRate -= 5;
+  }
+}
+
+// Progress Bar
+function progressBar() {
+  let barHeight = 300;
+  let barWidth = 20;
+  let yCenter = height / 2;
+  let barY = yCenter - barHeight / 2;
+
+  noStroke();
+  fill(255, 50);
+  rect(10, barY, barWidth, barHeight, 10);
+
+  // Progress calculation
+  let progress = (hc / lvlIncreaseFactor) * barHeight;
+  progress = constrain(progress, 0, barHeight);
+
+  fill(255, 0, 0, 80);
+  let progressY = barY + barHeight - progress;
+  rect(10, progressY, barWidth, progress, 10);
 }
 
 // ========== Mouse Clicked ==========
 
 function mouseClicked() {
-  lasers.push(new laser(mouseX));
-  // lasers.push(new laser(mouseX + 70));
+  lasers.push(new laser(mouseX - plr.halfWidth + 3));
+  lasers.push(new laser(mouseX + plr.halfWidth - 3));
+}
+
+// ========== End Game ==========
+
+function endGame() {
+  cl("========== End Game ==========");
 }

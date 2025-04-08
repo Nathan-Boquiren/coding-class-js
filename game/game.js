@@ -9,6 +9,7 @@ let lasers = [];
 let targets = [];
 
 let lvl = 1;
+let score = 0;
 let lives = 3;
 
 let targetSpawnInterval = 5;
@@ -67,6 +68,7 @@ class laser {
     this.velocity = 10;
     this.width = 10;
     this.height = 35;
+    this.impact = false;
   }
 
   shoot() {
@@ -91,6 +93,7 @@ class target {
     this.y = 0;
     this.velocity = 5;
     this.img = targetImg;
+    this.hp = 3;
   }
 
   spawn() {
@@ -132,12 +135,6 @@ function draw() {
   // Player
   image(playerImg.link, mouseX - 70, height - 250, 140, 140 * (49 / 43));
 
-  // Lasers
-  lasers.forEach((laser) => {
-    laser.spawn();
-    laser.shoot();
-  });
-
   // Targets
   if (frameCount % 60 === 0) {
     targets.push(new target());
@@ -147,6 +144,53 @@ function draw() {
     target.spawn();
     target.animate();
   });
+
+  // Lasers
+  lasers.forEach((laser) => {
+    laser.spawn();
+    laser.shoot();
+  });
+
+  // Check Laser and Target Collision
+  checkCollision();
+}
+
+function checkCollision() {
+  lasers.forEach((laser) => {
+    let lX = laser.x;
+    let lY = laser.y;
+    let lHalfHeight = laser.height / 2;
+    let lHalfWidth = laser.width / 2;
+
+    targets.forEach((target) => {
+      let tLeft = target.x;
+      let tRight = tLeft + 170;
+
+      let lTop = lY - lHalfHeight;
+      let lLeft = lX - lHalfWidth;
+      let lRight = lX + lHalfWidth;
+
+      let xAligned = lRight > tLeft && lLeft < tRight;
+      let yAligned = lTop <= target.y;
+
+      if (xAligned && yAligned && laser.impact === false) {
+        updateTargetHp(target, laser);
+        laser.impact = true;
+        // break;
+      }
+    });
+  });
+}
+
+// Remove target
+
+function updateTargetHp(target, laser) {
+  target.hp--;
+  lasers.splice(lasers.indexOf(laser), 1);
+  if (target.hp <= 0) {
+    let index = targets.indexOf(target);
+    targets.splice(index, 1);
+  }
 }
 
 // ========== Mouse Clicked ==========

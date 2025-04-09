@@ -17,8 +17,8 @@ let targetSpawnRate = 60;
 let targetVelocity = 4;
 
 let playerImg = {
-  width: 430,
-  height: 490,
+  // width: 430,
+  // height: 490,
   link: undefined,
 };
 
@@ -144,7 +144,7 @@ class target {
 // ========== Setup ==========
 
 function setup() {
-  createCanvas(1100, 550);
+  createCanvas(1100, 650);
 
   // Bg
   for (let i = 0; i < 200; i++) {

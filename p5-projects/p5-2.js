@@ -8,8 +8,8 @@ let color = 255;
 let cInc = 15;
 let x = 0;
 let y = 0;
-let yInc = 20;
-let xInc = 20;
+let yInc = 10;
+let xInc = 10;
 let d = 10;
 let rInc = 10;
 

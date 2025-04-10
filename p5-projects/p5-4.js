@@ -14,7 +14,7 @@ class Shape {
     this.r = r;
     this.g = g;
     this.b = b;
-
+    this.birthed = false;
     this.radius = this.diam / 2;
   }
 
@@ -23,29 +23,30 @@ class Shape {
     fill(this.r, this.g, this.b);
     circle((this.x += this.vx), (this.y += this.vy), this.diam);
 
-    if (this.x <= this.radius || this.x >= width - this.radius) {
+    if (
+      (this.x <= this.radius && !this.birthed) ||
+      (this.x >= width - this.radius && !this.birthed)
+    ) {
       this.vx = -this.vx;
+      this.birthed = true;
+      newShape(this.x, this.y);
     }
-    if (this.y <= this.radius || this.y >= height - this.radius) {
+    if (
+      (this.y <= this.radius && !this.birthed) ||
+      (this.y >= height - this.radius && !this.birthed)
+    ) {
       this.vy = -this.vy;
+      this.birthed = true;
+      newShape(this.x, this.y);
     }
-
-    // shapes.forEach((otherShape) => {
-    //   if (otherShape !== this) {
-    //     let distance = dist(this.x, this.y, otherShape.x, otherShape.y);
-    //     if (distance < this.radius + otherShape.radius) {
-    //       this.vx = -this.vx;
-    //       this.vy = -this.vy;
-    //     }
-    //   }
-    // });
   }
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
 }
-function mouseClicked() {
+
+function newShape(x, y) {
   let randR = random(255);
   let randG = random(255);
   let randB = random(255);
@@ -53,14 +54,15 @@ function mouseClicked() {
   let randXV = random(-20, 20);
   let randYV = random(-20, 20);
 
-  shapes.push(
-    new Shape(mouseX, mouseY, randXV, randYV, randDiam, randR, randG, randB)
-  );
+  shapes.push(new Shape(x, y, randXV, randYV, randDiam, randR, randG, randB));
+}
+function mouseClicked() {
+  newShape(mouseX, mouseY);
 }
 
 function draw() {
   background(0);
-  shapes.forEach((shape) => {
+  for (const shape of shapes) {
     shape.draw();
-  });
+  }
 }

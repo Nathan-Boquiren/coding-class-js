@@ -1,42 +1,43 @@
 ///<reference path="../lib/p5.global.d.ts" />
 
-var setup = function () {
-  createCanvas(600, 400);
-};
-
 let shape = {
-  x: 300,
+  x: 200,
   y: 200,
-  vx: -5,
-  vy: 5,
-  size: 100,
-  sizeIncrement: 1,
+  vx: 6,
+  vy: 7,
+  size: 50,
+  sizeIncrement: 20,
 
   draw: function () {
-    fill("red");
-    circle((shape.x += shape.vx), (shape.y += shape.vy), shape.size);
+    shape.x += shape.vx;
+    shape.y += shape.vy;
 
-    let radius = shape.size / 2;
-
-    if (shape.size >= 200) {
-      shape.sizeIncrement = -1;
-    } else if (shape.size <= 50) {
-      shape.sizeIncrement = 1;
-    }
-
-    if (shape.x <= radius || shape.x >= width - radius) {
+    if (shape.x < 0 || shape.x > width) {
       shape.vx = -shape.vx;
-      shape.size += shape.sizeIncrement * 20;
+      shape.changeSize();
     }
 
-    if (shape.y <= radius || shape.y >= height - radius) {
+    if (shape.y < 0 || shape.y > height) {
       shape.vy = -shape.vy;
-      shape.size += shape.sizeIncrement * 20;
+      shape.changeSize();
+    }
+
+    fill("red");
+    circle(shape.x, shape.y, shape.size);
+  },
+  changeSize: function () {
+    shape.size += shape.sizeIncrement;
+    if (shape.size > 200 || shape.size < 50) {
+      shape.sizeIncrement = -shape.sizeIncrement;
     }
   },
 };
 
+var setup = function () {
+  createCanvas(600, 400);
+};
+
 var draw = function () {
-  background(200);
+  background(220);
   shape.draw();
 };

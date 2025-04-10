@@ -4,32 +4,39 @@ var setup = function () {
   createCanvas(600, 400);
 };
 
-class Shape {
-  constructor() {
-    this.x = 300;
-    this.y = 200;
-    this.vx = -7;
-    this.vy = -6;
-    this.size = 100;
-  }
+let shape = {
+  x: 300,
+  y: 200,
+  vx: -5,
+  vy: 5,
+  size: 100,
+  sizeIncrement: 1,
 
-  draw() {
+  draw: function () {
     fill("red");
-    circle((this.x += this.vx), (this.y += this.vy), this.size);
+    circle((shape.x += shape.vx), (shape.y += shape.vy), shape.size);
 
-    if (this.x < 0 || this.x > width) {
-      this.vx = -this.vx;
-      this.size += 10;
+    let radius = shape.size / 2;
+
+    if (shape.size >= 200) {
+      shape.sizeIncrement = -1;
+    } else if (shape.size <= 50) {
+      shape.sizeIncrement = 1;
     }
 
-    if (this.y < 0 || this.y > height) {
-      this.vy = -this.vy;
-      this.size += 20;
+    if (shape.x <= radius || shape.x >= width - radius) {
+      shape.vx = -shape.vx;
+      shape.size += shape.sizeIncrement * 20;
     }
-  }
-}
+
+    if (shape.y <= radius || shape.y >= height - radius) {
+      shape.vy = -shape.vy;
+      shape.size += shape.sizeIncrement * 20;
+    }
+  },
+};
 
 var draw = function () {
   background(200);
-  this.draw();
+  shape.draw();
 };

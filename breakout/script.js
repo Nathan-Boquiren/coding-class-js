@@ -29,7 +29,7 @@ class Block {
   }
   create() {
     fill(this.clr);
-    stroke(20);
+    stroke(0);
     strokeWeight(3);
     rect(this.x, this.y, this.width, this.height, 10);
   }
@@ -51,7 +51,7 @@ class Paddle {
   }
 
   control() {
-    this.x = mouseX - 150 / 2;
+    this.x = constrain(mouseX - this.w / 2, 0, width - this.w);
   }
 
   create() {
@@ -75,6 +75,9 @@ class Ball {
   move() {
     this.x += this.vx;
     this.y += this.vy;
+
+    this.x = constrain(this.x, this.r, width - this.r);
+    this.y = constrain(this.y, this.r, height - this.r);
   }
   create() {
     fill(255);
@@ -109,7 +112,7 @@ function setup() {
 }
 
 function draw() {
-  background(20);
+  background(0);
 
   for (const block of blocks) {
     block.create();
@@ -154,32 +157,44 @@ function checkWallBounce(b) {
     b.vx *= -1;
   }
 
-  if (bTop <= 0 || bBottom >= height) {
+  if (bTop <= 0) {
     b.vy *= -1;
+  }
+
+  if (bBottom >= height) {
+    cl("lose life");
   }
 }
 
 function checkBlockBounce(b, blks) {
-  let bLeft = b.x - b.r;
-  let bRight = b.x + b.r;
-  let bTop = b.y - b.r;
-  let bBottom = b.y + b.r;
+  for (let i = blks.length - 1; i >= 0; i--) {
+    let block = blks[i];
 
-  for (const block of blks) {
     let blockLeft = block.x;
     let blockRight = block.x + block.width;
-    let blockBottom = block.y + b.r;
     let blockTop = block.y;
+    let blockBottom = block.y + block.height;
 
-    let xAligned = blockLeft <= bLeft && blockRight >= bRight;
-    let yAligned =
-      (blockBottom <= bTop && bTop <= blockBottom + b.d) ||
-      (blockTop >= bBottom && bBottom >= blockTop - b.r);
+    let closestX = constrain(b.x, blockLeft, blockRight);
+    let closestY = constrain(b.y, blockTop, blockBottom);
 
-    if (xAligned && yAligned) {
-      b.vy *= -1;
-      let index = blks.indexOf(block);
-      blks.splice(index, 1);
+    let distX = b.x - closestX;
+    let distY = b.y - closestY;
+    let distance = sqrt(distX * distX + distY * distY);
+
+    if (distance < b.r) {
+      let overlapX = b.r - abs(distX);
+      let overlapY = b.r - abs(distY);
+
+      if (overlapX < overlapY) {
+        b.vx *= -1;
+        b.x += distX > 0 ? overlapX : -overlapX;
+      } else {
+        b.vy *= -1;
+        b.y += distY > 0 ? overlapY : -overlapY;
+      }
+
+      blks.splice(i, 1);
     }
   }
 }

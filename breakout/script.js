@@ -129,13 +129,13 @@ function draw() {
   if (!gameStarted) {
     fill(255);
     textAlign(CENTER);
-    textSize(20);
-    text(centerMsg, width / 2 - 150, height / 2 - 50, 300);
+    textSize(30);
+    text(centerMsg, width / 2 - 250, height / 2 - 50, 500);
   }
 
   // Score and lives text
   textAlign(LEFT);
-  text(scoreStr(), width / 2 - 100, height - 40);
+  text(scoreStr(), width / 2 - 250, height - 40);
   text(heartStr(), width / 2 + 100, height - 40);
 
   for (const block of blocks) {
@@ -201,7 +201,9 @@ function checkPaddleBounce(b, p) {
     } else {
       ("bounce");
     }
+
     b.vy *= -1;
+    playPop(`paddle`);
   }
 }
 
@@ -253,9 +255,16 @@ function checkBlockBounce(b, blks) {
       }
 
       blks.splice(i, 1);
+      playPop(`block`);
+
       increaseScore();
     }
   }
+}
+
+function playPop(type) {
+  sfx = new Audio(`${type}.wav`);
+  sfx.play();
 }
 
 // Score increase

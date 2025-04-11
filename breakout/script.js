@@ -15,14 +15,14 @@ let score = 0;
 
 let blocks = [];
 
-let blockColors = [
-  "red",
-  " orange",
-  "yellow",
-  "green",
-  "blue",
-  "purple",
-  "cyan",
+const blockColors = [
+  "#FF3131", // Electric Red
+  "#FF6B00", // Tangerine Orange
+  "#FFD700", // Golden Yellow
+  "#32FF6A", // Lime Green
+  "#00F0FF", // Cyan Blue
+  "#7A5CFF", // Indigo Purple
+  "#FF5CA2", // Hot Pink
 ];
 
 let blockCol = 15;
@@ -169,7 +169,7 @@ function heartStr() {
 }
 
 function scoreStr() {
-  return score < 10 ? "0" + score : score;
+  return score < 100 ? "00" + score : score;
 }
 
 // bounce check for paddle, wall, and blocks
@@ -270,7 +270,7 @@ function playPop(type) {
 // Score increase
 
 function increaseScore() {
-  score++;
+  score += 10;
 }
 
 // Lives decrease

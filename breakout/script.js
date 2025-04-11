@@ -2,7 +2,16 @@
 
 let cl = console.log;
 
-// ===== blocks =====
+// ===== Global Variables
+
+let ball;
+let paddle;
+
+let gameStarted = false;
+let lives = 5;
+let score = 0;
+
+// ===== block variables =====
 
 let blocks = [];
 
@@ -17,6 +26,8 @@ let blockColors = [
 ];
 
 let blockCol = 15;
+
+// ===== Classes =====
 
 class Block {
   constructor(x, y, clr, width, height) {
@@ -39,14 +50,12 @@ class Block {
   }
 }
 
-// ===== paddle =====
-
 class Paddle {
   constructor() {
-    this.x = mouseX - 150 / 2;
-    this.y = height - 100;
-    this.w = 150;
+    this.w = 200;
     this.h = 30;
+    this.x = mouseX - this.width / 2;
+    this.y = height - 200;
     this.br = this.h / 2;
   }
 
@@ -61,14 +70,12 @@ class Paddle {
   }
 }
 
-// ===== ball =====
-
 class Ball {
   constructor() {
     this.x = width / 2;
-    this.y = 400;
+    this.y = 600;
     this.vx = 5;
-    this.vy = 15;
+    this.vy = -15;
     this.d = 30;
     this.r = this.d / 2;
   }
@@ -85,9 +92,7 @@ class Ball {
     circle(this.x, this.y, this.d);
   }
 }
-
-let ball;
-let paddle;
+// ===== setup =====
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -107,12 +112,31 @@ function setup() {
       );
     }
   }
+
   ball = new Ball();
   paddle = new Paddle();
 }
 
+// ===== draw =====
+
 function draw() {
   background(0);
+
+  // Text
+  textFont("Press Start 2P");
+  let centerMsg = lives > 0 ? "Click Mouse to Start Game" : "GAME OVER";
+
+  if (!gameStarted) {
+    fill(255);
+    textAlign(CENTER);
+    textSize(20);
+    text(centerMsg, width / 2 - 150, height / 2 - 50, 300);
+  }
+
+  // Score and lives text
+  textAlign(LEFT);
+  text(scoreStr(), width / 2 - 100, height - 40);
+  text(heartStr(), width / 2 + 100, height - 40);
 
   for (const block of blocks) {
     block.create();
@@ -123,13 +147,32 @@ function draw() {
   paddle.create();
 
   //   Ball
-  ball.move();
+  if (gameStarted) {
+    ball.move();
+  }
+
   ball.create();
 
   checkPaddleBounce(ball, paddle);
   checkWallBounce(ball);
   checkBlockBounce(ball, blocks);
 }
+
+// Make lives adn score strings
+
+function heartStr() {
+  let hearts = [];
+  for (let i = 0; i < lives; i++) {
+    hearts.push("❤️");
+  }
+  return hearts.join("");
+}
+
+function scoreStr() {
+  return score < 10 ? "0" + score : score;
+}
+
+// bounce check for paddle, wall, and blocks
 
 function checkPaddleBounce(b, p) {
   let pTopEdge = p.y + p.h / 2;
@@ -143,7 +186,22 @@ function checkPaddleBounce(b, p) {
   let xAligned = pLeftEdge <= bXCenter && pRightEdge >= bXCenter;
   let yAligned = pTopEdge >= bBottomEdge && bTopEdge >= pTopEdge - b.d;
   if (xAligned && yAligned) {
-    return (b.vy *= -1);
+    let section = bXCenter - pLeftEdge;
+
+    let leftBounce = section < p.w / 3;
+    let middleBounce = section >= p.w / 3 && section < (p.w / 3) * 2;
+    let rightBounce = section >= (p.w / 3) * 2;
+
+    if (leftBounce) {
+      b.vx = 15;
+    } else if (middleBounce) {
+      b.vx *= Math.abs(b.vx) === 15 ? 1 / 3 : 1;
+    } else if (rightBounce) {
+      b.vx = -15;
+    } else {
+      ("bounce");
+    }
+    b.vy *= -1;
   }
 }
 
@@ -162,7 +220,7 @@ function checkWallBounce(b) {
   }
 
   if (bBottom >= height) {
-    cl("lose life");
+    decreaseLives();
   }
 }
 
@@ -195,6 +253,31 @@ function checkBlockBounce(b, blks) {
       }
 
       blks.splice(i, 1);
+      increaseScore();
     }
   }
+}
+
+// Score increase
+
+function increaseScore() {
+  score++;
+}
+
+// Lives decrease
+
+function decreaseLives() {
+  lives = constrain(lives - 1, 0, 5);
+
+  gameStarted = false;
+
+  if (lives !== 0) {
+    ball = new Ball();
+  }
+}
+
+// ===== Mouse click to start game =====
+
+function mouseClicked() {
+  gameStarted = true;
 }

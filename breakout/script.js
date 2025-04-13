@@ -183,7 +183,7 @@ function setup() {
 // ===== draw =====
 
 function draw() {
-  background(0);
+  background(0, 150);
 
   // Text
   textFont("Press Start 2P");

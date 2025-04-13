@@ -1,16 +1,15 @@
 ///<reference path="../lib/p5.global.d.ts" />
 
-let cl = console.log;
-
 const skyClrs = ["#4f5bd5", "#962fbf", "#d62976", "#fa7e1e", "#feda75"];
+let barHeight = 160;
+let sunY = 450;
+let boatX = 1500;
+let boatA = 0;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   angleMode(DEGREES);
 }
-
-let barHeight = 160;
-let sunY = 450;
 
 function draw() {
   let halfHeight = height / 2;
@@ -64,10 +63,6 @@ function createLayer(xOff, yOff, clr, amp, waveLength) {
   vertex(0, height);
   endShape(CLOSE);
 }
-
-let boatX = 1500;
-
-let boatA = 0;
 
 function drawBoat() {
   push();

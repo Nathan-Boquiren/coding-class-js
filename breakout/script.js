@@ -33,6 +33,8 @@ const blockColors = [
   "#00F0FF",
   "#7A5CFF",
   "#FF5CA2",
+  "#FFB6FF",
+  "#00FFB2",
 ];
 
 let blockCol = 15;
@@ -159,20 +161,23 @@ class paddleHalo {
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 9; i++) {
     for (let j = 0; j < blockCol; j++) {
       let blockWidth = width / blockCol;
       let blockHeight = 40;
-      blocks.push(
-        new Block(
-          j * blockWidth,
-          i * blockHeight,
-          blockColors[i],
-          blockWidth,
-          blockHeight,
-          i + 1
-        )
-      );
+
+      if (i !== 4) {
+        blocks.push(
+          new Block(
+            j * blockWidth,
+            i * blockHeight,
+            blockColors[i],
+            blockWidth,
+            blockHeight,
+            i + 1
+          )
+        );
+      }
     }
   }
 

@@ -26,18 +26,20 @@ let sfx = {
 let blocks = [];
 
 const blockColors = [
-  "#FF3131",
-  "#FF6B00",
+  "#FF0000",
+  "#FF8C00",
   "#FFD700",
-  "#32FF6A",
-  "#00F0FF",
-  "#7A5CFF",
-  "#FF5CA2",
-  "#FFB6FF",
-  "#00FFB2",
+  "#32CD32",
+  "",
+  "#00CED1",
+  "#1E90FF",
+  "#8A2BE2",
+  "#FF1493",
 ];
 
 let blockCol = 15;
+
+// let angle = 0;
 
 // ===== Classes =====
 
@@ -73,6 +75,8 @@ class Paddle {
 
   control() {
     this.x = constrain(mouseX - this.w / 2, 0, width - this.w);
+    // this.w = sin(angle) * 100 + 200;
+    // angle += 0.1;
   }
 
   create() {

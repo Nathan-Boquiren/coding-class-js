@@ -22,9 +22,7 @@ let sfx = {
 };
 
 // ===== block variables =====
-
 let blocks = [];
-
 const blockColors = [
   "#FF0000",
   "#FF8C00",
@@ -36,9 +34,7 @@ const blockColors = [
   "#8A2BE2",
   "#FF1493",
 ];
-
 let blockCol = 15;
-
 // let angle = 0;
 
 // ===== Classes =====
@@ -161,7 +157,6 @@ class paddleHalo {
 }
 
 // ===== setup =====
-
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
@@ -190,7 +185,6 @@ function setup() {
 }
 
 // ===== draw =====
-
 function draw() {
   background(0, 150);
 
@@ -430,7 +424,6 @@ function decreaseLives() {
 }
 
 // ===== Mouse click to start game =====
-
 function mouseClicked() {
   gameStarted = true;
 }

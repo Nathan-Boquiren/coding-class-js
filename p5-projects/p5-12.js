@@ -99,7 +99,7 @@ function drawBoat() {
   );
 
   pop();
-  boatX -= 2;
+  boatX -= 3.5;
   boatA += 5;
   if (boatX <= -150) {
     boatX = width + 150;

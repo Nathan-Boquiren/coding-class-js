@@ -184,13 +184,17 @@ function setup() {
   paddle = new Paddle();
 }
 
+let angle = 0;
+
 // ===== draw =====
 function draw() {
   background(0, 150);
 
   // Text
   textFont("Press Start 2P");
-  let centerMsg = lives > 0 ? "Click Mouse to Start Game" : "GAME OVER";
+
+  let centerMsg = getCenterMsg();
+
   let txtClr = color(255);
   txtClr.setAlpha(255);
   fill(txtClr);
@@ -253,6 +257,18 @@ function heartStr() {
 
 function scoreStr() {
   return String(score).padStart(3, "0");
+}
+
+function getCenterMsg() {
+  let msg;
+  if (lives < 0) {
+    msg = "GAME OVER";
+  } else if (lives > 0 && blocks.length <= 0) {
+    msg = "YOU WIN!";
+  } else {
+    msg = "Click Mouse to Start Game";
+  }
+  return msg;
 }
 
 // bounce check for paddle, wall, and blocks

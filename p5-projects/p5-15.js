@@ -1,5 +1,7 @@
 ///<reference path="../lib/p5.global.d.ts" />
 
+let cl = console.log;
+
 var snake;
 var food;
 
@@ -12,46 +14,31 @@ class Snake {
   constructor() {
     this.x = 0;
     this.y = 0;
+    this.speed = 5;
     this.vx = 1;
     this.vy = 0;
-    this.currentDir = "RIGHT";
+    this.nextVX = 1;
+    this.nextVY = 0;
     this.length = 1;
-    this.tail = [];
+    this.history = [];
   }
 
   move() {
-    this.x = constrain(this.x + this.vx * size, 0, width - size);
-    this.y = constrain(this.y + this.vy * size, 0, height - size);
-
-    if (
-      (this.x === 0 && this.currentDir === "LEFT") ||
-      (this.x === width - size && this.currentDir === "RIGHT")
-    ) {
-      if (this.y < height / 2) {
-        this.changeDirection(0, 1);
-        this.currentDir = "DOWN";
-      } else {
-        this.changeDirection(0, -1);
-        this.currentDir = "UP";
-      }
-    }
-    if (
-      (this.y === 0 && this.currentDir === "UP") ||
-      (this.y === height - size && this.currentDir === "DOWN")
-    ) {
-      if (this.x < width / 2) {
-        this.changeDirection(1, 0);
-        this.currentDir = "RIGHT";
-      } else {
-        this.changeDirection(-1, 0);
-        this.currentDir = "LEFT";
-      }
+    if (this.x % size === 0 && this.y % size === 0) {
+      this.vx = this.nextVX;
+      this.vy = this.nextVY;
     }
 
-    this.tail.push(createVector(this.x, this.y));
+    this.x += this.vx * this.speed;
+    this.y += this.vy * this.speed;
+    this.x = constrain(this.x, 0, width - size);
+    this.y = constrain(this.y, 0, height - size);
 
-    if (this.tail.length > this.length) {
-      this.tail.shift();
+    this.history.push(createVector(this.x, this.y));
+
+    const maxFrames = this.length * (size / this.speed) + 1;
+    if (this.history.length > maxFrames) {
+      this.history.splice(0, this.history.length - maxFrames);
     }
   }
 
@@ -59,20 +46,22 @@ class Snake {
     noStroke();
     fill(0, 255, 0);
 
-    for (let i = 0; i < this.tail.length; i++) {
-      let t = this.tail[i];
+    const framesPerCell = size / this.speed;
 
-      if (i === this.tail.length - 1) {
-        square(this.x, this.y, size);
-      } else {
-        square(t.x, t.y, size);
+    for (let i = 1; i < this.length; i++) {
+      const idx = this.history.length - 1 - i * framesPerCell;
+      if (idx >= 0) {
+        const pos = this.history[floor(idx)];
+        square(pos.x, pos.y, size);
       }
     }
+
+    square(this.x, this.y, size);
   }
 
-  changeDirection(x, y) {
-    this.vx = x;
-    this.vy = y;
+  changeDirection(xDir, yDir) {
+    this.nextVX = xDir;
+    this.nextVY = yDir;
   }
 
   grow() {
@@ -81,7 +70,7 @@ class Snake {
 
   die() {
     this.length = 1;
-    this.tail = [];
+    this.history = [];
   }
 }
 
@@ -110,13 +99,12 @@ function setup() {
 
   snake = new Snake();
   food = new Food();
-  frameRate(10);
 
   food.update();
 }
 
 function draw() {
-  background(0, 100);
+  background(0, 70, 50);
 
   snake.move();
   snake.show();
@@ -128,8 +116,8 @@ function draw() {
     snake.grow();
   }
 
-  for (let i = 0; i < snake.tail.length - 1; i++) {
-    const t = snake.tail[i];
+  for (let i = 0; i < snake.history.length - 1; i++) {
+    const t = snake.history[i];
 
     if (snake.x === t.x && snake.y === t.y) {
       console.log("DIE");
@@ -139,17 +127,13 @@ function draw() {
 }
 
 function keyPressed() {
-  if (keyCode === UP_ARROW && snake.currentDir !== "DOWN") {
+  if (keyCode === UP_ARROW && snake.vy === 0) {
     snake.changeDirection(0, -1);
-    snake.currentDir = "UP";
-  } else if (keyCode === DOWN_ARROW && snake.currentDir !== "UP") {
+  } else if (keyCode === DOWN_ARROW && snake.vy === 0) {
     snake.changeDirection(0, 1);
-    snake.currentDir = "DOWN";
-  } else if (keyCode === LEFT_ARROW && snake.currentDir !== "RIGHT") {
+  } else if (keyCode === LEFT_ARROW && snake.vx === 0) {
     snake.changeDirection(-1, 0);
-    snake.currentDir = "LEFT";
-  } else if (keyCode === RIGHT_ARROW && snake.currentDir !== "LEFT") {
+  } else if (keyCode === RIGHT_ARROW && snake.vx === 0) {
     snake.changeDirection(1, 0);
-    snake.currentDir = "RIGHT";
   }
 }

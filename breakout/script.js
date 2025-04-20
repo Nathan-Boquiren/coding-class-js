@@ -37,7 +37,8 @@ const blockColors = [
 let blockCol = 15;
 
 // ===== ball variables =====
-let ballSpeed = 5;
+let ballSpeed = 4;
+
 // ===== Classes =====
 
 class Block {
@@ -318,7 +319,7 @@ function checkPaddleBounce(b, p) {
     paddleAnimation(b.x, p.y, p.w);
 
     //decrease paddle width
-    p.w -= 3;
+    p.w = constrain(p.w - 3, 50, 300);
   }
 }
 

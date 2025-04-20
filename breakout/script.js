@@ -35,8 +35,9 @@ const blockColors = [
   "#FF1493",
 ];
 let blockCol = 15;
-// let angle = 0;
 
+// ===== ball variables =====
+let ballSpeed = 5;
 // ===== Classes =====
 
 class Block {
@@ -62,7 +63,7 @@ class Block {
 
 class Paddle {
   constructor() {
-    this.w = 200;
+    this.w = 300;
     this.h = 30;
     this.x = mouseX - this.w / 2;
     this.y = height - 200;
@@ -71,8 +72,6 @@ class Paddle {
 
   control() {
     this.x = constrain(mouseX - this.w / 2, 0, width - this.w);
-    // this.w = sin(angle) * 100 + 200;
-    // angle += 0.1;
   }
 
   create() {
@@ -86,8 +85,8 @@ class Ball {
   constructor() {
     this.x = width / 2;
     this.y = 600;
-    this.vx = 5;
-    this.vy = -15;
+    this.vx = ballSpeed;
+    this.vy = ballSpeed * -3;
     this.d = 30;
     this.r = this.d / 2;
   }
@@ -99,9 +98,16 @@ class Ball {
     this.y = constrain(this.y, this.r, height - this.r);
   }
   create() {
+    drawingContext.save();
+
+    drawingContext.shadowBlur = 20;
+    drawingContext.shadowColor = color(255, 255, 255, 150);
+
     fill(255);
     noStroke();
     circle(this.x, this.y, this.d);
+
+    drawingContext.restore();
   }
 }
 
@@ -133,10 +139,10 @@ class Particle {
 }
 
 class paddleHalo {
-  constructor(x, y) {
+  constructor(x, y, w) {
     this.x = x;
     this.y = y;
-    this.w = 200;
+    this.w = w;
     this.h = 30;
     this.r = this.h / 2;
     this.alpha = 200;
@@ -183,8 +189,6 @@ function setup() {
   ball = new Ball();
   paddle = new Paddle();
 }
-
-let angle = 0;
 
 // ===== draw =====
 function draw() {
@@ -300,23 +304,21 @@ function checkPaddleBounce(b, p) {
     let rightBounce = section >= (p.w / 3) * 2;
 
     if (leftBounce) {
-      b.vx = 15;
+      b.vx = ballSpeed * 3;
     } else if (middleBounce) {
-      b.vx *= Math.abs(b.vx) === 15 ? 1 / 3 : 1;
+      b.vx *= Math.abs(b.vx) === ballSpeed * 3 ? 1 / 3 : 1;
     } else if (rightBounce) {
-      b.vx = -15;
+      b.vx = ballSpeed * -3;
     }
-
-    // let relativeIntersectX = b.x - (p.x + p.w / 2);
-    // let normalized = relativeIntersectX / (p.w / 2);
-    // let maxSpeed = 15;
-    // b.vx = normalized * maxSpeed;
 
     b.vy *= -1;
     b.y = p.y - b.r;
     playSfx(`paddle`);
 
-    paddleAnimation(b.x, p.y);
+    paddleAnimation(b.x, p.y, p.w);
+
+    //decrease paddle width
+    p.w -= 3;
   }
 }
 
@@ -377,13 +379,14 @@ function checkBlockBounce(b, blks) {
 
       blks.splice(i, 1);
 
-      let rowComplete = checkRow(removedBlock, removedBlock.row);
-
       playSfx(`block`);
 
+      let rowComplete = checkRow(removedBlock, removedBlock.row);
       if (rowComplete === true) {
         increaseScore(50);
-        cl("row complete");
+        cl("row complete...ball speed increase");
+        ballSpeed += 0.5;
+        cl(ballSpeed);
       } else {
         increaseScore(10);
       }
@@ -418,8 +421,8 @@ function blockAnimation(x, y, clr) {
   }
 }
 
-function paddleAnimation(x, y) {
-  halo = new paddleHalo(x, y);
+function paddleAnimation(x, y, w) {
+  halo = new paddleHalo(x, y, w);
 }
 
 // Score increase

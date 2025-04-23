@@ -43,12 +43,12 @@ class Duck {
   updateCollisionShape() {
     this.cx = this.x + this.w / 2;
     this.cy = this.y + this.h / 2;
-    this.r = this.h * 0.4; // tweak this so the circle hugs the duck
+    this.r = this.h * 0.4;
   }
 
   animate() {
     if (duckJumping) {
-      const jumpDuration = 50;
+      const jumpDuration = 250 / difficultySpeed;
       const t = this.jumpProgress / jumpDuration;
       this.y = horizon - this.h - 150 * sin(PI * t);
 
@@ -179,6 +179,11 @@ let highScore = 0;
 
 let difficultySpeed = 5;
 
+let nightMode = false;
+let prevNightMode = false;
+let lerpAmt = 0;
+const TRANSITION_MS = 500;
+
 // ========== Setup ==========
 
 function setup() {
@@ -197,12 +202,21 @@ function setup() {
   if (saved !== null) {
     highScore = int(saved);
   }
+
+  prevNightMode = nightMode;
 }
 
 // ========== Draw ==========
 
 function draw() {
-  createBackground();
+  if (nightMode !== prevNightMode) {
+    prevNightMode = nightMode;
+    lerpAmt = 0;
+  }
+
+  lerpAmt = constrain(lerpAmt + deltaTime / TRANSITION_MS, 0, 1);
+
+  createBackground(lerpAmt, nightMode);
 
   updateScore();
 
@@ -237,6 +251,11 @@ function updateScore() {
     localStorage.setItem("highScore", highScore);
   }
 
+  // night mode
+  if (score % 1500 === 0) {
+    nightMode = nightMode === true ? false : true;
+  }
+
   // Currnt score
   fill(255);
   noStroke();
@@ -255,21 +274,33 @@ function updateScore() {
 }
 
 // Create background
-function createBackground() {
-  background(100, 150, 255);
+function createBackground(t, isNight) {
+  const dayClr = color(100, 150, 255);
+  const nightClr = color(30, 30, 60);
 
-  // Horizon
-  stroke(128);
+  const from = isNight ? dayClr : nightClr;
+  const to = isNight ? nightClr : dayClr;
+
+  background(lerpColor(from, to, t));
+
+  const fillClr = isNight
+    ? lerpColor(color(200), color(60), t)
+    : lerpColor(color(60), color(200), t);
+  const strokeClr = isNight
+    ? lerpColor(color(128), color(30), t)
+    : lerpColor(color(30), color(128), t);
+
+  fill(fillClr);
+  stroke(strokeClr);
   strokeWeight(3);
   line(0, horizon, width, horizon);
-
-  fill(200);
   rect(0, horizon, width, height - horizon);
 
   // Clouds
   if (frameCount % 400 === 0) {
     clouds.push(new Cloud());
   }
+
   for (c of clouds) {
     c.create();
   }
@@ -279,7 +310,6 @@ function createBackground() {
     if (!duckDied) {
       d.animate();
     }
-
     d.show();
   }
 }
@@ -288,7 +318,8 @@ function createBackground() {
 function keyPressed() {
   if (
     (keyCode === 32 && !duckJumping) ||
-    (keyCode === UP_ARROW && !duckJumping)
+    (keyCode === UP_ARROW && !duckJumping) ||
+    (keyCode === 87 && !duckJumping)
   ) {
     duckJumping = true;
   }

@@ -79,11 +79,11 @@ class Obstacle {
   updateCollisionShape() {
     this.cx = this.x + this.w / 2;
     this.cy = this.y + this.h / 2;
-    this.r = this.w * 0.5; // cone is tall & skinny, so radius ≈ half width
+    this.r = this.w * 0.5;
   }
 
   animate() {
-    this.x -= 6;
+    this.x -= difficultySpeed;
     this.updateCollisionShape();
     if (this.x < -this.w) {
       obstacles.splice(obstacles.indexOf(this), 1);
@@ -134,7 +134,7 @@ class Dot {
     this.h = 3;
   }
   animate() {
-    this.x -= 6;
+    this.x -= difficultySpeed;
     if (this.x < -this.w) {
       this.x = width;
     }
@@ -175,6 +175,9 @@ let clouds = [];
 let dots = [];
 
 let score = 0;
+let highScore = 0;
+
+let difficultySpeed = 5;
 
 // ========== Setup ==========
 
@@ -189,12 +192,19 @@ function setup() {
   for (let i = 0; i < 20; i++) {
     dots.push(new Dot(random(width * 2), horizon + 10));
   }
+
+  let saved = localStorage.getItem("highScore");
+  if (saved !== null) {
+    highScore = int(saved);
+  }
 }
 
 // ========== Draw ==========
 
 function draw() {
   createBackground();
+
+  updateScore();
 
   if (!duckDied) {
     duck.animate();
@@ -206,32 +216,66 @@ function draw() {
     nextObstacleFrame = frameCount + floor(random(minSpawn, maxSpawn));
   }
 
-  for (let o of obstacles) {
+  for (o of obstacles) {
     if (!duckDied) o.animate();
     o.checkCollision();
     o.show();
   }
 }
 
+function updateScore() {
+  if (!duckDied) {
+    score++;
+  }
+
+  if (score % 250 === 0) {
+    difficultySpeed += 0.25;
+  }
+
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem("highScore", highScore);
+  }
+
+  // Currnt score
+  fill(255);
+  noStroke();
+  textFont("Press Start 2P");
+  textStyle(NORMAL);
+  textSize(20);
+
+  let scoreText = score.toString().padStart(5, "0");
+  text(scoreText, width - 150, 60);
+
+  // Highscore
+  let highScoreTxt = highScore.toString().padStart(5, "0");
+  fill(255, 150);
+  text("HI", width - 360, 60);
+  text(highScoreTxt, width - 300, 60);
+}
+
 // Create background
 function createBackground() {
-  background(255);
+  background(100, 150, 255);
 
   // Horizon
   stroke(128);
   strokeWeight(3);
   line(0, horizon, width, horizon);
 
+  fill(200);
+  rect(0, horizon, width, height - horizon);
+
   // Clouds
   if (frameCount % 400 === 0) {
     clouds.push(new Cloud());
   }
-  for (const c of clouds) {
+  for (c of clouds) {
     c.create();
   }
 
   // Dots on ground
-  for (const d of dots) {
+  for (d of dots) {
     if (!duckDied) {
       d.animate();
     }

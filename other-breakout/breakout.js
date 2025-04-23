@@ -13,13 +13,13 @@ class Game {
 class Paddle {
   constructor() {
     this.x = 0;
-    this.y = height - 60;
+    this.y = height - 100;
     this.width = 160;
     this.height = 20;
   }
   draw() {
-    // this.x = mouseX - this.width / 2;
-    this.x = ball.x - this.width / 2;
+    this.x = mouseX - this.width / 2;
+    // this.x = ball.x - this.width / 2;
     fill("white");
     rect(this.x, this.y, this.width, this.height);
   }
@@ -41,9 +41,9 @@ class Ball {
     }
 
     if (
-      this.y >= paddle.y &&
+      this.y + 10 >= paddle.y &&
       this.y <= paddle.y + paddle.height &&
-      this.x >= paddle.x &&
+      this.x + 10 >= paddle.x &&
       this.x <= paddle.x + paddle.width
     ) {
       this.y = paddle.y - 10;
@@ -56,12 +56,13 @@ class Ball {
 }
 
 class Target {
-  constructor(x, y) {
+  constructor(x, y, w, h) {
     this.x = x;
     this.y = y;
-    this.width = targetWidth;
-    this.height = 20;
+    this.width = w;
+    this.height = h;
   }
+
   draw() {
     if (
       ball.y <= this.y + this.height &&
@@ -87,13 +88,8 @@ let paddle;
 let ball;
 let targets = [];
 
-let targetWidth;
-
 var setup = function () {
   createCanvas(windowWidth, windowHeight);
-
-  targetWidth = width / 12;
-  let targetHeight = 20;
 
   game = new Game();
   paddle = new Paddle();
@@ -101,7 +97,9 @@ var setup = function () {
 
   for (let x = 0; x < 12; x++) {
     for (let y = 0; y <= 5; y++) {
-      targets.push(new Target(x * targetWidth, y * targetHeight));
+      let w = width / 12;
+      let h = 20;
+      targets.push(new Target(x * w, y * h, w, h));
     }
   }
 };

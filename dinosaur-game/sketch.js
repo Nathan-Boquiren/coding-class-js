@@ -5,27 +5,38 @@ let cl = console.log;
 // ===== Preload Imgs =====
 
 let duckImgs = [];
-let duckDeadImg;
+let fireSpriteSheet;
+let fireFrames = [];
+let obstacleSpriteSheet;
 let obstacleImgs = [];
 let cloudImgs = [];
 
+const spriteData = [
+  { x: 0, y: 171, w: 479, h: 154 },
+  { x: 635, y: 0, w: 355, h: 325 },
+  { x: 1177, y: 78, w: 448, h: 247 },
+
+  { x: 16, y: 526, w: 386, h: 263 },
+  { x: 635, y: 527, w: 401, h: 262 },
+  { x: 1223, y: 588, w: 417, h: 201 },
+
+  { x: 31, y: 929, w: 433, h: 309 },
+  { x: 650, y: 929, w: 340, h: 309 },
+  { x: 1208, y: 976, w: 448, h: 262 },
+];
+
 function preload() {
   for (let i = 1; i <= 4; i++) {
-    let img = loadImage(`imgs/duck-${i}.png`);
+    let img = loadImage(`imgs/duck-imgs/duck-${i}.png`);
     duckImgs.push(img);
   }
-
-  duckDeadImg = loadImage("imgs/duck-dead.png");
-
-  for (let i = 1; i <= 1; i++) {
-    let img = loadImage(`imgs/obstacle-${i}.png`);
-    obstacleImgs.push(img);
-  }
-
   for (let i = 1; i <= 5; i++) {
-    let img = loadImage(`imgs/cloud-${i}.png`);
+    let img = loadImage(`imgs/cloud-imgs/cloud-${i}.png`);
     cloudImgs.push(img);
   }
+
+  fireSpriteSheet = loadImage("imgs/fire-spritesheet.png");
+  obstacleSpriteSheet = loadImage("imgs/obstacles/rocks-spritesheet.png");
 }
 
 // ===== Classes =====
@@ -38,6 +49,11 @@ class Duck {
     this.y = horizon - this.h;
     this.jumpProgress = 0;
     this.updateCollisionShape();
+    // fire
+    this.fW = 512 / 4;
+    this.fH = 1024 / 4;
+    this.fX = this.x - 30;
+    this.fY = horizon - this.fH;
   }
 
   updateCollisionShape() {
@@ -63,17 +79,24 @@ class Duck {
 
   show() {
     const img = getCurrentFrame();
-    image(img, this.x, this.y, this.w, this.h);
+    if (img) {
+      if (duckDied) {
+        image(img, this.fX, this.fY, this.fW, this.fH);
+      } else {
+        image(img, this.x, this.y, this.w, this.h);
+      }
+    }
   }
 }
 
 class Obstacle {
-  constructor() {
+  constructor(img) {
     this.w = 430 / 6;
     this.h = 498 / 6;
     this.x = width;
     this.y = horizon - this.h;
     this.updateCollisionShape();
+    this.img = img;
   }
 
   updateCollisionShape() {
@@ -97,12 +120,12 @@ class Obstacle {
     const radSum = duck.r + this.r;
     if (distSq <= radSum * radSum) {
       duckDied = true;
+      deathFrame = frameCount;
     }
   }
 
   show() {
-    const img = obstacleImgs[0];
-    image(img, this.x, this.y, this.w, this.h);
+    image(this.img, this.x, this.y, this.w, this.h);
   }
 }
 
@@ -117,7 +140,10 @@ class Cloud {
   }
 
   create() {
-    this.x -= this.vx;
+    if (!duckDied) {
+      this.x -= this.vx;
+    }
+
     if (this.x <= -this.w) {
       let i = clouds.indexOf(this);
       clouds.splice(i, 1);
@@ -148,12 +174,11 @@ class Dot {
 // Get duck frame
 function getCurrentFrame() {
   if (duckDied) {
-    return duckDeadImg;
+    return fireFrames[fireAnimIndex];
   } else {
     const framesPerImage = 6;
-    const totalImages = duckImgs.length;
-    const i = Math.floor(frameCount / framesPerImage) % totalImages;
-
+    const total = duckImgs.length;
+    const i = Math.floor(frameCount / framesPerImage) % total;
     return duckImgs[i];
   }
 }
@@ -163,13 +188,17 @@ function getCurrentFrame() {
 let horizon;
 let duck;
 let duckJumping = false;
+let duckDied = false;
+let deathFrame = null;
+
+let fireAnimIndex = 0;
+let fireAnimTicker = 0;
+const fireAnimDelay = 4;
 
 let obstacles = [];
 let nextObstacleFrame;
 const minSpawn = 40;
 const maxSpawn = 180;
-
-let duckDied = false;
 
 let clouds = [];
 let dots = [];
@@ -182,7 +211,7 @@ let difficultySpeed = 5;
 let nightMode = false;
 let prevNightMode = false;
 let lerpAmt = 0;
-const TRANSITION_MS = 500;
+const transitionLength = 500;
 
 // ========== Setup ==========
 
@@ -204,6 +233,25 @@ function setup() {
   }
 
   prevNightMode = nightMode;
+
+  setupImgFrames();
+}
+
+function setupImgFrames() {
+  for (let i = 0; i < 9; i++) {
+    let obstImg = obstacleSpriteSheet.get(
+      spriteData[i].x,
+      spriteData[i].y,
+      spriteData[i].w,
+      spriteData[i].h
+    );
+    obstacleImgs.push(obstImg);
+  }
+
+  for (let i = 0; i < 11; i++) {
+    let fireFrame = fireSpriteSheet.get(512 * i, 0, 512, 1024);
+    fireFrames.push(fireFrame);
+  }
 }
 
 // ========== Draw ==========
@@ -214,19 +262,14 @@ function draw() {
     lerpAmt = 0;
   }
 
-  lerpAmt = constrain(lerpAmt + deltaTime / TRANSITION_MS, 0, 1);
+  lerpAmt = constrain(lerpAmt + deltaTime / transitionLength, 0, 1);
 
   createBackground(lerpAmt, nightMode);
 
-  updateScore();
-
-  if (!duckDied) {
-    duck.animate();
-  }
-  duck.show();
-
   if (frameCount >= nextObstacleFrame) {
-    obstacles.push(new Obstacle());
+    const idx = Math.floor(Math.random() * obstacleImgs.length);
+    const img = obstacleImgs[idx];
+    obstacles.push(new Obstacle(img));
     nextObstacleFrame = frameCount + floor(random(minSpawn, maxSpawn));
   }
 
@@ -235,6 +278,21 @@ function draw() {
     o.checkCollision();
     o.show();
   }
+
+  if (!duckDied) {
+    duck.animate();
+  } else if (duckDied) {
+    fireAnimTicker++;
+    if (fireAnimTicker >= fireAnimDelay) {
+      fireAnimTicker = 0;
+      if (fireAnimIndex < fireFrames.length - 1) {
+        fireAnimIndex++;
+      }
+    }
+  }
+  duck.show();
+
+  updateScore();
 }
 
 function updateScore() {
@@ -273,7 +331,6 @@ function updateScore() {
   text(highScoreTxt, width - 300, 60);
 }
 
-// Create background
 function createBackground(t, isNight) {
   const dayClr = color(100, 150, 255);
   const nightClr = color(30, 30, 60);
@@ -284,11 +341,11 @@ function createBackground(t, isNight) {
   background(lerpColor(from, to, t));
 
   const fillClr = isNight
-    ? lerpColor(color(200), color(60), t)
-    : lerpColor(color(60), color(200), t);
+    ? lerpColor(color(150), color(60), t)
+    : lerpColor(color(60), color(150), t);
   const strokeClr = isNight
-    ? lerpColor(color(128), color(30), t)
-    : lerpColor(color(30), color(128), t);
+    ? lerpColor(color(110), color(30), t)
+    : lerpColor(color(30), color(110), t);
 
   fill(fillClr);
   stroke(strokeClr);
@@ -313,6 +370,7 @@ function createBackground(t, isNight) {
     d.show();
   }
 }
+
 // ===== Keyboard Event for Duck Jump =====
 
 function keyPressed() {

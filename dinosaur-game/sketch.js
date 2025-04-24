@@ -123,7 +123,7 @@ class Duck {
     this.fW = 512 / 4;
     this.fH = 1024 / 4;
     this.fX = this.x - 30;
-    this.fY = game.horizon - this.fH;
+    this.fY = game.horizon - this.fH - 2;
   }
 
   updateCollisionShape() {
@@ -149,7 +149,9 @@ class Duck {
 
   show() {
     if (duck.died) {
-      image(this.fireImgs.day, this.fX, this.fY, this.fW, this.fH);
+      // prettier-ignore
+      let fireImg = nightMode === false ? this.fireImgs.day : this.fireImgs.night;
+      image(fireImg, this.fX, this.fY, this.fW, this.fH);
     } else {
       image(this.img, this.x, this.y, this.w, this.h);
     }
@@ -298,7 +300,6 @@ function draw() {
   }
 
   lerpAmt = constrain(lerpAmt + deltaTime / transitionLength, 0, 1);
-
   game.draw(lerpAmt, nightMode);
 
   if (frameCount >= nextObstacleFrame) {

@@ -187,6 +187,7 @@ class Obstacle {
     const radSum = duck.r + this.r;
     if (distSq <= radSum * radSum) {
       duck.died = true;
+      obstacles.splice(obstacles.indexOf(this), 1);
     }
   }
 
@@ -211,8 +212,8 @@ class Cloud {
     }
 
     if (this.x <= -this.w) {
-      let i = clouds.indexOf(this);
-      clouds.splice(i, 1);
+      let i = game.clouds.indexOf(this);
+      game.clouds.splice(i, 1);
     }
     image(this.img, this.x, this.y, this.w, this.h);
   }
@@ -244,7 +245,7 @@ let duck;
 
 let obstacles = [];
 let nextObstacleFrame;
-const minSpawn = 40;
+const minSpawn = 50;
 const maxSpawn = 180;
 
 let score = 0;
@@ -315,15 +316,7 @@ function draw() {
 
   if (!duck.died) {
     duck.animate();
-  } /* else {
-    duck.fireAnimTicker++;
-    if (duck.fireAnimTicker >= duck.fireAnimDelay) {
-      duck.fireAnimTicker = 0;
-      if (duck.fireAnimIndex < fireFrames.length - 1) {
-        duck.fireAnimIndex++;
-      }
-    }
-  } */
+  }
 
   duck.show();
 

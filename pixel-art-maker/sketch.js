@@ -6,6 +6,7 @@ let palatte = [];
 
 let canvasSize = document.getElementById("canvasSize").value;
 let currentClr = document.getElementById("current-clr").value;
+const palatteContainer = document.getElementById("palatte");
 
 class Grid {
   constructor(size) {
@@ -19,7 +20,7 @@ class Grid {
     for (let x = 0; x < this.rowNum; x++) {
       for (let y = 0; y < this.colNum; y++) {
         // prettier-ignore
-        this.blks.push(new Block(x * this.blkSize, y * this.blkSize, this.blkSize, 255))
+        this.blks.push(new Block(x * this.blkSize, y * this.blkSize, this.blkSize, '#ffffff'))
       }
     }
   }
@@ -31,12 +32,18 @@ class Block {
     this.y = y;
     this.s = s;
     this.halfSize = this.s / 2;
-    this.clr = color(clr);
+    this.clr = clr;
+    this.painted = false;
   }
 
   create() {
-    stroke(150);
-    fill(this.clr);
+    if (!this.painted) {
+      stroke(150);
+    } else {
+      noStroke();
+    }
+
+    fill(color(this.clr));
     square(this.x, this.y, this.s);
   }
 
@@ -49,18 +56,19 @@ let grid;
 
 function setup() {
   createCanvas(600, 600);
-  let initialSize = document.getElementById("canvasSize").value;
-  grid = new Grid(initialSize);
+  grid = new Grid(canvasSize);
   grid.create();
 }
 
 function draw() {
-  background(100);
-  currentClr = color(document.getElementById("current-clr").value);
+  background(255);
+  currentClr = document.getElementById("current-clr").value;
 
   for (const b of grid.blks) {
     b.create();
   }
+
+  updatePalatte();
 }
 
 function mousePressed() {
@@ -74,6 +82,35 @@ function mouseDragged() {
 function paintBlocks() {
   for (const b of grid.blks) {
     let d = dist(mouseX, mouseY, b.x + b.halfSize, b.y + b.halfSize);
-    if (d <= b.halfSize) b.paint(currentClr);
+    if (d <= b.halfSize) {
+      b.paint(currentClr);
+      b.painted = true;
+    }
   }
 }
+
+function updatePalatte() {
+  for (let i = 0; i < grid.blks.length; i++) {
+    const blk = grid.blks[i];
+    const clr = grid.blks[i].clr;
+    if (!palatte.includes(clr) && blk.painted) {
+      palatte.push(clr);
+      palatte = [...new Set(palatte)];
+      palatteContainer.innerHTML += `
+      <span class="p-clr ${clr}" style="background-color: ${clr}"></span>
+    `;
+    }
+  }
+}
+
+document.getElementById("canvasSize").addEventListener("input", () => {
+  canvasSize = document.getElementById("canvasSize").value;
+  setup();
+});
+
+document.querySelectorAll(".p-clr").forEach((pClr) => {
+  pClr.addEventListener("click", () => {
+    cl("clicked");
+    // cl(pClr.classList);
+  });
+});

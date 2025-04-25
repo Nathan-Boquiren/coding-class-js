@@ -27,16 +27,11 @@ const spriteData = [
 ];
 
 function preload() {
-  // for (let i = 1; i <= 4; i++) {
-  //   let img = loadImage(`imgs/duck-imgs/duck-${i}.png`);
-  //   duckImgs.push(img);
-  // }
   for (let i = 1; i <= 5; i++) {
     let img = loadImage(`imgs/cloud-imgs/cloud-${i}.png`);
     cloudImgs.push(img);
   }
 
-  // fireSpriteSheet = loadImage("imgs/fire-spritesheet.png");
   obstacleSpriteSheet = loadImage("imgs/obstacles/rocks-spritesheet.png");
 
   duckAnimation = loadImage("imgs/duck.gif");
@@ -322,6 +317,10 @@ function draw() {
   duck.show();
 
   updateScore();
+
+  if (duck.died) {
+    showRestartBtn();
+  }
 }
 
 function updateScore() {
@@ -358,6 +357,14 @@ function updateScore() {
   fill(255, 150);
   text("HI", width - 360, 60);
   text(highScoreTxt, width - 300, 60);
+}
+
+function showRestartBtn() {
+  let restartBtn = createButton("RESTART");
+  restartBtn.addClass("restart-btn");
+  restartBtn.mousePressed(() => {
+    window.location.reload();
+  });
 }
 
 // ===== Keyboard Event for Duck Jump =====

@@ -87,8 +87,8 @@ class Paddle {
     rect(this.x, this.y, this.w, this.h, this.br);
   }
 
-  paddleAnimation(x, y, w) {
-    halo = new PaddleHalo(x, y, w);
+  paddleAnimation(x) {
+    halo = new PaddleHalo(x, this.y, this.w);
   }
 }
 
@@ -124,15 +124,23 @@ class Ball {
     this.vy = ballSpeed * -3;
     this.d = 30;
     this.r = this.d / 2;
+
+    // edges
+    this.top = this.y - this.r;
+    this.btm = this.y + this.r;
+    this.left = this.x - this.r;
+    this.right = this.x + this.r;
   }
   move() {
-    this.x += this.vx;
-    this.y += this.vy;
+    this.x = constrain((this.x += this.vx), this.r, width - this.r);
+    this.y = constrain((this.y += this.vy), this.r, height - this.r);
 
-    this.x = constrain(this.x, this.r, width - this.r);
-    this.y = constrain(this.y, this.r, height - this.r);
+    this.top = this.y - this.r;
+    this.btm = this.y + this.r;
+    this.left = this.x - this.r;
+    this.right = this.x + this.r;
 
-    this.paddleBounce(paddle);
+    this.paddleBounce();
     this.wallBounce();
     this.blockBounce();
   }
@@ -143,21 +151,15 @@ class Ball {
     let pLeft = paddle.x;
     let pRight = paddle.x + paddle.w;
 
-    let bTop = this.y - this.r;
-    let bBottom = this.y + this.r;
-    let bLeft = this.x - this.r;
-    let bRight = this.x + this.r;
-
     let isColliding =
-      bBottom >= pTop &&
-      bTop <= pBottom &&
-      bRight >= pLeft &&
-      bLeft <= pRight &&
+      this.btm >= pTop &&
+      this.top <= pBottom &&
+      this.right >= pLeft &&
+      this.left <= pRight &&
       this.vy > 0;
 
     if (isColliding) {
-      let bXCenter = this.x;
-      let section = bXCenter - pLeft;
+      let section = this.x - pLeft;
 
       let leftBounce = section < paddle.w / 3;
       let middleBounce =
@@ -176,7 +178,7 @@ class Ball {
       this.y = paddle.y - this.r;
       playSfx(`paddle`);
 
-      paddle.paddleAnimation(this.x, paddle.y, paddle.w);
+      paddle.paddleAnimation(this.x);
 
       //decrease paddle width
       paddle.w = constrain(paddle.w - 3, 50, 300);
@@ -184,69 +186,49 @@ class Ball {
   }
 
   wallBounce() {
-    let bLeft = this.x - this.r;
-    let bRight = this.x + this.r;
-    let bTop = this.y - this.r;
-    let bBottom = this.y + this.r;
-
-    if (bLeft <= 0 || bRight >= width) {
+    if (this.left <= 0 || this.right >= width) {
       this.vx *= -1;
     }
-
-    if (bTop <= 0) {
+    if (this.top <= 0) {
       this.vy *= -1;
     }
-
-    if (bBottom >= height) {
+    if (this.btm >= height) {
       decreaseLives();
     }
   }
 
   blockBounce() {
-    for (let i = blocks.length - 1; i >= 0; i--) {
-      let block = blocks[i];
+    blocks = blocks.filter((block) => {
+      const closestX = constrain(this.x, block.x, block.x + block.width);
+      const closestY = constrain(this.y, block.y, block.y + block.height);
 
-      let closestX = constrain(this.x, block.x, block.x + block.width);
-      let closestY = constrain(this.y, block.y, block.y + block.height);
+      const dx = this.x - closestX;
+      const dy = this.y - closestY;
+      const distSq = dx * dx + dy * dy;
 
-      let distX = this.x - closestX;
-      let distY = this.y - closestY;
+      if (distSq >= this.r * this.r) return true;
 
-      let distance = sqrt(distX * distX + distY * distY);
-
-      if (distance < this.r) {
-        let overlapX = this.r - abs(distX);
-        let overlapY = this.r - abs(distY);
-
-        if (overlapX < overlapY) {
-          this.vx *= -1;
-          this.x += distX > 0 ? overlapX : -overlapX;
-        } else {
-          this.vy *= -1;
-          this.y += distY > 0 ? overlapY : -overlapY;
-        }
-
-        let removedBlock = blocks[i];
-
-        block.blockAnimation(
-          removedBlock.x + removedBlock.width / 2,
-          removedBlock.y + removedBlock.height / 2,
-          removedBlock.clr
-        );
-
-        blocks.splice(i, 1);
-
-        playSfx(`block`);
-
-        let rowComplete = checkRow(removedBlock, removedBlock.row);
-        if (rowComplete === true) {
-          increaseScore(50);
-          ballSpeed += 0.5;
-        } else {
-          increaseScore(10);
-        }
+      if (abs(dx) > abs(dy)) {
+        this.vx *= -1;
+        this.x += dx > 0 ? this.r - abs(dx) : -(this.r - abs(dx));
+      } else {
+        this.vy *= -1;
+        this.y += dy > 0 ? this.r - abs(dy) : -(this.r - abs(dy));
       }
-    }
+
+      block.blockAnimation(
+        block.x + block.width / 2,
+        block.y + block.height / 2,
+        block.clr
+      );
+      playSfx("block");
+
+      const rowCleared = checkRow(block, block.row);
+      increaseScore(rowCleared ? 50 : 10);
+      if (rowCleared) ballSpeed += 0.5;
+
+      return false;
+    });
   }
 
   create() {
@@ -323,23 +305,14 @@ function draw() {
   background(0, 150);
 
   // Text
-  textFont("Press Start 2P");
-
-  let centerMsg = getCenterMsg();
-
-  let txtClr = color(255);
-  txtClr.setAlpha(255);
-  fill(txtClr);
-  if (!gameStarted) {
-    textAlign(CENTER);
-    textSize(30);
-    text(centerMsg, width / 2 - 250, height / 2 - 50, 500);
-  }
+  showCenterTxt();
 
   // Score and lives text
   textAlign(LEFT);
   text(scoreStr(), width / 2 - 250, height - 40);
   text(heartStr(), width / 2 + 100, height - 40);
+
+  // create blocks
 
   for (const block of blocks) {
     block.create();
@@ -357,7 +330,6 @@ function draw() {
   ball.create();
 
   // bounce animations
-
   particles.forEach((particle) => {
     particle.animate();
     particle.show();
@@ -373,18 +345,17 @@ function draw() {
   }
 }
 
-// Make lives and score strings
-
-function heartStr() {
-  let hearts = [];
-  for (let i = 0; i < lives; i++) {
-    hearts.push("❤️");
+function showCenterTxt() {
+  let centerMsg = getCenterMsg();
+  textFont("Press Start 2P");
+  let txtClr = color(255);
+  txtClr.setAlpha(255);
+  fill(txtClr);
+  if (!gameStarted) {
+    textAlign(CENTER);
+    textSize(30);
+    text(centerMsg, width / 2 - 250, height / 2 - 50, 500);
   }
-  return hearts.join("");
-}
-
-function scoreStr() {
-  return String(score).padStart(4, "0");
 }
 
 function getCenterMsg() {
@@ -397,6 +368,20 @@ function getCenterMsg() {
     msg = "Click Mouse to Start Game";
   }
   return msg;
+}
+
+// Make lives and score strings
+
+function heartStr() {
+  let hearts = [];
+  for (let i = 0; i < lives; i++) {
+    hearts.push("❤️");
+  }
+  return hearts.join("");
+}
+
+function scoreStr() {
+  return String(score).padStart(4, "0");
 }
 
 // Check if row is complete

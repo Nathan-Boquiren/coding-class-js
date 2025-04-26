@@ -356,10 +356,6 @@ function draw() {
 
   ball.create();
 
-  // checkPaddleBounce(ball, paddle);
-  // checkWallBounce(ball);
-  // checkBlockBounce(ball, blocks);
-
   // bounce animations
 
   particles.forEach((particle) => {
@@ -393,7 +389,7 @@ function scoreStr() {
 
 function getCenterMsg() {
   let msg;
-  if (lives < 0) {
+  if (lives <= 0) {
     msg = "GAME OVER";
   } else if (lives > 0 && blocks.length <= 0) {
     msg = "YOU WIN!";

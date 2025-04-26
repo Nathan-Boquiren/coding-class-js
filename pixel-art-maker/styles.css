@@ -23,6 +23,10 @@ body {
     gap: 1rem;
 }
 
+input {
+    color: black;
+}
+
 #palatte {
     width: 12rem;
     min-height: 2rem;

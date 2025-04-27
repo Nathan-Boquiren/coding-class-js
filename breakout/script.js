@@ -21,6 +21,10 @@ let sfx = {
   life: new Audio("sfx/life.wav"),
 };
 
+// power ups
+
+let powerUps = [];
+
 // ===== block variables =====
 let blocks = [];
 const blockColors = [
@@ -37,28 +41,49 @@ const blockColors = [
 let blockCol = 15;
 
 // ===== ball variables =====
+let balls = [];
 let ballSpeed = 4;
+
+// Powerup types
+
+const powerUpTypes = ["extraBall", "extraLife", "upGravity", "downGravity"];
 
 // ===== Classes =====
 
 class Block {
-  constructor(x, y, clr, width, height, row) {
+  constructor(x, y, clr, width, height, row, pu) {
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
     this.clr = clr;
     this.row = row;
+    this.newBall = pu === "extraBall" ? true : false;
+    switch (pu) {
+      case "extraBall":
+        this.pu = new Ball(this.x + this.width / 2, this.y, this.clr);
+        break;
+      case "extraLife":
+        this.pu = new extraLife(this.x + this.width / 2, this.y);
+        break;
+      case "upGravity":
+        this.pu = new upGravity(this.x + this.width / 2, this.y);
+        break;
+      case "downGravity":
+        this.pu = new downGravity(this.x + this.width / 2, this.y);
+        break;
+      case null:
+        this.pu = null;
+        break;
+      default:
+        break;
+    }
   }
   create() {
     fill(this.clr);
     stroke(0);
     strokeWeight(3);
     rect(this.x, this.y, this.width, this.height, 10);
-  }
-  remove() {
-    let index = blocks.indexOf(this);
-    blocks.splice(index, 1);
   }
 
   blockAnimation(x, y, clr) {
@@ -117,13 +142,15 @@ class PaddleHalo {
 }
 
 class Ball {
-  constructor() {
-    this.x = width / 2;
-    this.y = 600;
+  constructor(x = width / 2, y = 600, clr = 255) {
+    this.x = x;
+    this.y = y;
     this.vx = ballSpeed;
     this.vy = ballSpeed * -3;
     this.d = 30;
     this.r = this.d / 2;
+    this.grav = -1;
+    this.clr = clr;
 
     // edges
     this.top = this.y - this.r;
@@ -132,6 +159,7 @@ class Ball {
     this.right = this.x + this.r;
   }
   move() {
+    // this.vy += this.grav;
     this.x = constrain((this.x += this.vx), this.r, width - this.r);
     this.y = constrain((this.y += this.vy), this.r, height - this.r);
 
@@ -216,6 +244,12 @@ class Ball {
         this.y += dy > 0 ? this.r - abs(dy) : -(this.r - abs(dy));
       }
 
+      if (block.pu !== null && !block.newBall) {
+        powerUps.push(block.pu);
+      } else if (block.pu !== null && block.newBall) {
+        balls.push(block.pu);
+      }
+
       block.blockAnimation(
         block.x + block.width / 2,
         block.y + block.height / 2,
@@ -237,11 +271,33 @@ class Ball {
     drawingContext.shadowBlur = 20;
     drawingContext.shadowColor = color(255, 255, 255, 150);
 
-    fill(255);
+    fill(color(this.clr));
     noStroke();
     circle(this.x, this.y, this.d);
 
     drawingContext.restore();
+  }
+}
+
+class upBall extends Ball {
+  move() {
+    this.vy += this.grav;
+    if (this.y <= this.r) {
+      let ogBall = balls[0];
+      balls.length = 0;
+      balls.push(new Ball(ogBall.x, ogBall.y, ogBall.clr));
+    }
+    super.move();
+  }
+}
+
+class downBall extends Ball {
+  move() {
+    this.vy -= this.grav;
+    // if (this.y >= this.r) {
+    //   ball = new Ball(ball.x, ball.y, ball.clr);
+    // }
+    super.move();
   }
 }
 
@@ -272,6 +328,112 @@ class Particle {
   }
 }
 
+class PowerUp {
+  constructor(x, y, clr) {
+    this.x = x;
+    this.y = y;
+    this.clr = clr;
+    this.vx = random(-3, 3);
+    this.vy = 5;
+    this.r = 10;
+
+    this.top = this.y - this.r;
+    this.btm = this.y + this.r;
+    this.left = this.x - this.r;
+    this.right = this.x + this.r;
+
+    this.active = true;
+  }
+
+  move() {
+    this.x += this.vx;
+    this.y += this.vy;
+
+    this.top = this.y - this.r;
+    this.btm = this.y + this.r;
+    this.left = this.x - this.r;
+    this.right = this.x + this.r;
+
+    if (this.y >= height) {
+      this.remove();
+    }
+
+    this.paddleBounce();
+  }
+
+  paddleBounce() {
+    let pTop = paddle.y;
+    let pBottom = paddle.y + paddle.h;
+    let pLeft = paddle.x;
+    let pRight = paddle.x + paddle.w;
+
+    let isColliding =
+      this.btm >= pTop &&
+      this.top <= pBottom &&
+      this.right >= pLeft &&
+      this.left <= pRight &&
+      this.vy > 0;
+
+    if (isColliding) {
+      this.effect();
+      this.active = false;
+
+      playSfx(`paddle`);
+
+      paddle.paddleAnimation(this.x);
+    }
+  }
+
+  remove() {
+    let i = powerUps.indexOf(this);
+    powerUps.splice(i, 1);
+  }
+
+  create() {}
+
+  effect() {}
+}
+
+class extraLife extends PowerUp {
+  create() {
+    fill(255, 0, 0);
+    circle(this.x, this.y, 20);
+  }
+
+  effect() {
+    lives++;
+    cl("lives increase");
+  }
+}
+
+class upGravity extends PowerUp {
+  create() {
+    fill(0, 0, 255);
+    circle(this.x, this.y, 20);
+  }
+
+  effect() {
+    let ogBall = balls[0];
+    balls.length = 0;
+    balls.push(new upBall(ogBall.x, ogBall.y, ogBall.clr));
+    cl("up ball");
+  }
+}
+
+class downGravity extends PowerUp {
+  create() {
+    fill(0, 255, 0);
+    circle(this.x, this.y, 20);
+  }
+
+  effect() {
+    let ogBall = balls[0];
+    balls.length = 0;
+    balls.push(new downBall(ogBall.x, ogBall.y, ogBall.clr));
+    cl("down ball");
+  }
+}
+
 // ===== setup =====
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -281,6 +443,16 @@ function setup() {
       let blockWidth = width / blockCol;
       let blockHeight = 40;
 
+      let pu = null;
+
+      let rand = random();
+
+      if (rand < 0.1) {
+        pu = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+      }
+
+      cl(pu);
+
       if (i !== 4) {
         blocks.push(
           new Block(
@@ -289,14 +461,16 @@ function setup() {
             blockColors[i],
             blockWidth,
             blockHeight,
-            i + 1
+            i + 1,
+            pu
           )
         );
       }
     }
   }
 
-  ball = new Ball();
+  // ball = new Ball(width / 2, 600, 255);
+  balls.push(new Ball());
   paddle = new Paddle();
 }
 
@@ -314,8 +488,8 @@ function draw() {
 
   // create blocks
 
-  for (const block of blocks) {
-    block.create();
+  for (const b of blocks) {
+    b.create();
   }
 
   //   Paddle Bouncer thingy
@@ -324,16 +498,33 @@ function draw() {
 
   //   Ball
   if (gameStarted) {
-    ball.move();
+    for (const b of balls) {
+      b.move();
+    }
+    // ball.move();
+
+    // power ups
+    for (const pU of powerUps) {
+      if (pU.active) {
+        pU.move();
+        pU.create();
+      } else {
+        pU.remove();
+      }
+    }
   }
 
-  ball.create();
+  for (const b of balls) {
+    b.create();
+  }
+
+  // ball.create();
 
   // bounce animations
-  particles.forEach((particle) => {
-    particle.animate();
-    particle.show();
-  });
+  for (const p of particles) {
+    p.animate();
+    p.show();
+  }
 
   if (halo) {
     halo.animate();
@@ -415,9 +606,12 @@ function decreaseLives() {
 
   gameStarted = false;
 
+  powerUps.length = 0;
+
   if (lives !== 0) {
     playSfx(`life`);
-    ball = new Ball();
+    balls.length = 0;
+    balls.push(new Ball());
   }
 }
 

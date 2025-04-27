@@ -4,30 +4,24 @@ let cl = console.log;
 
 // ===== Global Variables =====
 
-let ball;
-let paddle;
-
 let gameStarted = false;
 let lives = 3;
 let score = 0;
 
-// bounce animation variables
+let ball;
+let paddle;
 let halo;
+
+let balls = [];
+let blocks = [];
 let particles = [];
-
-let sfx = {
-  paddle: new Audio("sfx/paddle.wav"),
-  block: new Audio("sfx/block.wav"),
-  life: new Audio("sfx/life.wav"),
-  powerUp: new Audio("sfx/power-up.wav"),
-};
-
-// power ups
-
 let powerUps = [];
 
-// ===== block variables =====
-let blocks = [];
+let blockCol = 15;
+let ballSpeed = 4;
+
+// ===== Stuff and Things =====
+
 const blockColors = [
   "#FF0000",
   "#FF8C00",
@@ -39,15 +33,14 @@ const blockColors = [
   "#8A2BE2",
   "#FF1493",
 ];
-let blockCol = 15;
-
-// ===== ball variables =====
-let balls = [];
-let ballSpeed = 4;
-
-// Powerup types
-
 const powerUpTypes = ["extraBall", "extraLife", "upGravity", "downGravity"];
+
+const sfx = {
+  paddle: new Audio("sfx/paddle.wav"),
+  block: new Audio("sfx/block.wav"),
+  life: new Audio("sfx/life.wav"),
+  powerUp: new Audio("sfx/power-up.wav"),
+};
 
 // ===== Classes =====
 
@@ -329,7 +322,7 @@ class Particle {
   }
 }
 
-// PowerUps
+// PowerUp Classes
 class PowerUp {
   constructor(x, y, clr) {
     this.x = x;
@@ -407,7 +400,6 @@ class extraLife extends PowerUp {
 
   effect() {
     lives++;
-    cl("lives increase");
   }
 }
 
@@ -425,7 +417,6 @@ class upGravity extends PowerUp {
     let ogBall = balls[0];
     balls.length = 0;
     balls.push(new upBall(ogBall.x, ogBall.y, ogBall.clr));
-    cl("up ball");
   }
 }
 
@@ -443,7 +434,6 @@ class downGravity extends PowerUp {
     let ogBall = balls[0];
     balls.length = 0;
     balls.push(new downBall(ogBall.x, ogBall.y, ogBall.clr));
-    cl("down ball");
   }
 }
 
@@ -464,8 +454,6 @@ function setup() {
         pu = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
       }
 
-      cl(pu);
-
       if (i !== 4) {
         blocks.push(
           new Block(
@@ -482,7 +470,6 @@ function setup() {
     }
   }
 
-  // ball = new Ball(width / 2, 600, 255);
   balls.push(new Ball());
   paddle = new Paddle();
 }
@@ -575,7 +562,6 @@ function getCenterMsg() {
 }
 
 // Make lives and score strings
-
 function heartStr() {
   let hearts = [];
   for (let i = 0; i < lives; i++) {
@@ -600,7 +586,7 @@ function checkRow(currentBlk, rowNum) {
 
 // ===== Style =====
 
-// Play pop sfx
+// Play SFX
 function playSfx(type) {
   if (sfx[type]) {
     sfx[type].currentTime = 0;

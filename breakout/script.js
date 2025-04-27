@@ -33,7 +33,13 @@ const blockColors = [
   "#8A2BE2",
   "#FF1493",
 ];
-const powerUpTypes = ["extraBall", "extraLife", "upGravity", "downGravity"];
+const powerUpTypes = [
+  "extraBall",
+  "extraLife",
+  "upGravity",
+  "downGravity",
+  "curveEffect",
+];
 
 const sfx = {
   paddle: new Audio("sfx/paddle.wav"),
@@ -65,6 +71,9 @@ class Block {
         break;
       case "downGravity":
         this.pu = new downGravity(this.x + this.width / 2, this.y);
+        break;
+      case "curveEffect":
+        this.pu = new curveEffect(this.x + this.width / 2, this.y);
         break;
       case null:
         this.pu = null;
@@ -146,6 +155,8 @@ class Ball {
     this.grav = -1;
     this.clr = clr;
 
+    this.ang = 0;
+
     // edges
     this.top = this.y - this.r;
     this.btm = this.y + this.r;
@@ -153,7 +164,6 @@ class Ball {
     this.right = this.x + this.r;
   }
   move() {
-    // this.vy += this.grav;
     this.x = constrain((this.x += this.vx), this.r, width - this.r);
     this.y = constrain((this.y += this.vy), this.r, height - this.r);
 
@@ -288,9 +298,15 @@ class upBall extends Ball {
 class downBall extends Ball {
   move() {
     this.vy -= this.grav;
-    // if (this.y >= this.r) {
-    //   ball = new Ball(ball.x, ball.y, ball.clr);
-    // }
+    super.move();
+  }
+}
+
+class curveBall extends Ball {
+  move() {
+    this.ang += 0.1;
+    const wobble = this.vx * sin(this.ang) * 3;
+    this.x += wobble;
     super.move();
   }
 }
@@ -383,36 +399,25 @@ class PowerUp {
     powerUps.splice(i, 1);
   }
 
-  create() {}
+  create() {
+    drawingContext.save();
+    drawingContext.shadowBlur = 20;
+    drawingContext.shadowColor = color(100, 100, 255, 150);
+    text("❓", this.x, this.y);
+
+    drawingContext.restore();
+  }
 
   effect() {}
 }
 
 class extraLife extends PowerUp {
-  create() {
-    drawingContext.save();
-    drawingContext.shadowBlur = 20;
-    drawingContext.shadowColor = color(255, 0, 0, 150);
-    text("❤️", this.x, this.y);
-
-    drawingContext.restore();
-  }
-
   effect() {
     lives++;
   }
 }
 
 class upGravity extends PowerUp {
-  create() {
-    drawingContext.save();
-    drawingContext.shadowBlur = 20;
-    drawingContext.shadowColor = color(100, 100, 255, 150);
-    text("⬆️", this.x, this.y);
-
-    drawingContext.restore();
-  }
-
   effect() {
     let ogBall = balls[0];
     balls.length = 0;
@@ -421,19 +426,18 @@ class upGravity extends PowerUp {
 }
 
 class downGravity extends PowerUp {
-  create() {
-    drawingContext.save();
-    drawingContext.shadowBlur = 20;
-    drawingContext.shadowColor = color(100, 100, 255, 150);
-    text("⬇️", this.x, this.y);
-
-    drawingContext.restore();
-  }
-
   effect() {
     let ogBall = balls[0];
     balls.length = 0;
     balls.push(new downBall(ogBall.x, ogBall.y, ogBall.clr));
+  }
+}
+
+class curveEffect extends PowerUp {
+  effect() {
+    let ogBall = balls[0];
+    balls.length = 0;
+    balls.push(new curveBall(ogBall.x, ogBall.y, ogBall.clr));
   }
 }
 

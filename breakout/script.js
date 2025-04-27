@@ -8,7 +8,7 @@ let ball;
 let paddle;
 
 let gameStarted = false;
-let lives = 5;
+let lives = 3;
 let score = 0;
 
 // bounce animation variables
@@ -19,6 +19,7 @@ let sfx = {
   paddle: new Audio("sfx/paddle.wav"),
   block: new Audio("sfx/block.wav"),
   life: new Audio("sfx/life.wav"),
+  powerUp: new Audio("sfx/power-up.wav"),
 };
 
 // power ups
@@ -38,7 +39,7 @@ const blockColors = [
   "#8A2BE2",
   "#FF1493",
 ];
-let blockCol = 2;
+let blockCol = 15;
 
 // ===== ball variables =====
 let balls = [];
@@ -378,8 +379,7 @@ class PowerUp {
     if (isColliding) {
       this.effect();
       this.active = false;
-
-      playSfx(`paddle`);
+      playSfx("powerUp");
 
       paddle.paddleAnimation(this.x);
     }

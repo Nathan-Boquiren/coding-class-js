@@ -38,7 +38,7 @@ const blockColors = [
   "#8A2BE2",
   "#FF1493",
 ];
-let blockCol = 15;
+let blockCol = 2;
 
 // ===== ball variables =====
 let balls = [];
@@ -328,6 +328,7 @@ class Particle {
   }
 }
 
+// PowerUps
 class PowerUp {
   constructor(x, y, clr) {
     this.x = x;
@@ -396,8 +397,12 @@ class PowerUp {
 
 class extraLife extends PowerUp {
   create() {
-    fill(255, 0, 0);
-    circle(this.x, this.y, 20);
+    drawingContext.save();
+    drawingContext.shadowBlur = 20;
+    drawingContext.shadowColor = color(255, 0, 0, 150);
+    text("❤️", this.x, this.y);
+
+    drawingContext.restore();
   }
 
   effect() {
@@ -408,8 +413,12 @@ class extraLife extends PowerUp {
 
 class upGravity extends PowerUp {
   create() {
-    fill(0, 0, 255);
-    circle(this.x, this.y, 20);
+    drawingContext.save();
+    drawingContext.shadowBlur = 20;
+    drawingContext.shadowColor = color(100, 100, 255, 150);
+    text("⬆️", this.x, this.y);
+
+    drawingContext.restore();
   }
 
   effect() {
@@ -422,8 +431,12 @@ class upGravity extends PowerUp {
 
 class downGravity extends PowerUp {
   create() {
-    fill(0, 255, 0);
-    circle(this.x, this.y, 20);
+    drawingContext.save();
+    drawingContext.shadowBlur = 20;
+    drawingContext.shadowColor = color(100, 100, 255, 150);
+    text("⬇️", this.x, this.y);
+
+    drawingContext.restore();
   }
 
   effect() {

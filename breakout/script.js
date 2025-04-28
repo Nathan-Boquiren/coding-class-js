@@ -115,8 +115,8 @@ class Block {
   create() {
     fill(this.clr);
     stroke(0);
-    strokeWeight(3);
-    rect(this.x, this.y, this.width, this.height, 10);
+    strokeWeight(2.5);
+    rect(this.x, this.y, this.width, this.height, 8);
   }
 
   blockAnimation(x, y, clr) {
@@ -128,10 +128,10 @@ class Block {
 
 class Paddle {
   constructor() {
-    this.w = 300;
-    this.h = 30;
+    this.w = 240;
+    this.h = 24;
     this.x = mouseX - this.w / 2;
-    this.y = height - 200;
+    this.y = height - 140;
     this.br = this.h / 2;
   }
 
@@ -155,7 +155,7 @@ class PaddleHalo {
     this.x = x;
     this.y = y;
     this.w = w;
-    this.h = 30;
+    this.h = 24;
     this.r = this.h / 2;
     this.alpha = 200;
   }
@@ -180,7 +180,7 @@ class Ball {
     this.y = y;
     this.vx = ballSpeed;
     this.vy = ballSpeed * -3;
-    this.d = 30;
+    this.d = 24;
     this.r = this.d / 2;
     this.grav = -1;
     this.clr = clr;
@@ -243,7 +243,7 @@ class Ball {
       paddle.paddleAnimation(this.x);
 
       //decrease paddle width
-      paddle.w = constrain(paddle.w - 3, 50, 300);
+      paddle.w = constrain(paddle.w - 3, 40, 240);
     }
   }
 
@@ -362,7 +362,7 @@ class Particle {
     let clr = color(this.clr);
     clr.setAlpha(this.alpha);
     fill(clr);
-    circle(this.x, this.y, 10);
+    circle(this.x, this.y, 8);
   }
 }
 
@@ -440,8 +440,15 @@ class PowerUp {
   create() {
     drawingContext.save();
     drawingContext.shadowBlur = 20;
-    drawingContext.shadowColor = color(100, 100, 255, 150);
-    text("❓", this.x, this.y);
+    drawingContext.shadowColor = color(255, 0, 0, 150);
+    stroke(255, 0, 0);
+    strokeWeight(3);
+    fill(0);
+    square(this.x - 20, this.y - 20, 40, 5);
+
+    textAlign(CENTER, CENTER);
+    textSize(30);
+    text("❓", this.x, this.y - 5);
 
     drawingContext.restore();
   }
@@ -515,13 +522,13 @@ function setup() {
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < blockCol; j++) {
       let blockWidth = width / blockCol;
-      let blockHeight = 40;
+      let blockHeight = 35;
 
       let pu = null;
 
       let rand = random();
 
-      if (rand < 0.1) {
+      if (rand < 0.09) {
         pu = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
       }
 
@@ -554,9 +561,10 @@ function draw() {
   showCenterTxt();
 
   // Score and lives text
-  textAlign(LEFT);
-  text(scoreStr(), width / 2 - 250, height - 40);
-  text(heartStr(), width / 2 + 100, height - 40);
+  textAlign(CENTER, CENTER);
+  textSize(24);
+  text(scoreStr(), width / 2 - 200, height - 50);
+  text(heartStr(), width / 2 + 200, height - 50);
 
   // create blocks
 
@@ -614,9 +622,9 @@ function showCenterTxt() {
   txtClr.setAlpha(255);
   fill(txtClr);
   if (!gameStarted) {
-    textAlign(CENTER);
-    textSize(30);
-    text(centerMsg, width / 2 - 250, height / 2 - 50, 500);
+    textAlign(CENTER, CENTER);
+    textSize(24);
+    text(centerMsg, width / 2, height / 2);
   }
 }
 

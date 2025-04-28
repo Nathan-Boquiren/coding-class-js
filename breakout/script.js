@@ -36,8 +36,12 @@ const blockColors = [
 const powerUpTypes = [
   "extraBall",
   "extraLife",
+  "extraLife",
+  "upGravity",
   "upGravity",
   "downGravity",
+  "downGravity",
+  "curveEffect",
   "curveEffect",
 ];
 
@@ -58,22 +62,48 @@ class Block {
     this.height = height;
     this.clr = clr;
     this.row = row;
-    this.newBall = pu === "extraBall" ? true : false;
     switch (pu) {
+      // prettier-ignore
       case "extraBall":
-        this.pu = new Ball(this.x + this.width / 2, this.y, this.clr);
+        this.pu = new extraBall(
+          this.x + this.width / 2,
+          this.y,
+          this.clr,
+          pu);
         break;
+      // prettier-ignore
       case "extraLife":
-        this.pu = new extraLife(this.x + this.width / 2, this.y);
+        this.pu = new extraLife(
+          this.x + this.width / 2,
+          this.y,
+          this.clr,
+          pu);
         break;
+      // prettier-ignore
       case "upGravity":
-        this.pu = new upGravity(this.x + this.width / 2, this.y);
+        this.pu = new upGravity(
+          this.x + this.width / 2,
+          this.y,
+          this.clr,
+          pu);
         break;
+      // prettier-ignore
       case "downGravity":
-        this.pu = new downGravity(this.x + this.width / 2, this.y);
+        this.pu = new downGravity(
+          this.x + this.width / 2,
+          this.y,
+          this.clr,
+          pu
+        );
         break;
+      // prettier-ignore
       case "curveEffect":
-        this.pu = new curveEffect(this.x + this.width / 2, this.y);
+        this.pu = new curveEffect(
+          this.x + this.width / 2,
+          this.y,
+          this.clr,
+          pu
+        );
         break;
       case null:
         this.pu = null;
@@ -248,10 +278,8 @@ class Ball {
         this.y += dy > 0 ? this.r - abs(dy) : -(this.r - abs(dy));
       }
 
-      if (block.pu !== null && !block.newBall) {
+      if (block.pu !== null) {
         powerUps.push(block.pu);
-      } else if (block.pu !== null && block.newBall) {
-        balls.push(block.pu);
       }
 
       block.blockAnimation(
@@ -341,7 +369,7 @@ class Particle {
 // PowerUp Classes
 
 class PowerUp {
-  constructor(x, y, clr) {
+  constructor(x, y, clr, type) {
     this.x = x;
     this.y = y;
     this.clr = clr;
@@ -349,12 +377,19 @@ class PowerUp {
     this.vy = 5;
     this.r = 10;
 
+    this.type = type;
+
     this.top = this.y - this.r;
     this.btm = this.y + this.r;
     this.left = this.x - this.r;
     this.right = this.x + this.r;
 
     this.active = true;
+    this.textActive = true;
+    this.startTimeCalculated = false;
+    this.startTxtTime = 0;
+    this.a = 0;
+    this.fill = color(255);
   }
 
   move() {
@@ -391,6 +426,8 @@ class PowerUp {
       this.active = false;
       playSfx("powerUp");
 
+      this.animateTxt();
+
       paddle.paddleAnimation(this.x);
     }
   }
@@ -409,7 +446,33 @@ class PowerUp {
     drawingContext.restore();
   }
 
+  animateTxt() {
+    if (!this.startTimeCalculated) {
+      this.startTxtTime = frameCount;
+      this.startTimeCalculated = true;
+    }
+    let deltaTime = frameCount - this.startTxtTime;
+    if (this.textActive) {
+      this.a = -(17 / 60) * deltaTime ** 2 + 17 * deltaTime;
+      this.fill.setAlpha(this.a);
+      fill(this.fill);
+      textAlign(CENTER, CENTER);
+      textSize(25);
+      text(this.type, width / 2, height / 2);
+      if (deltaTime >= 60) {
+        this.textActive = false;
+      }
+    }
+  }
+
   effect() {}
+}
+
+class extraBall extends PowerUp {
+  effect() {
+    let og = balls[0];
+    balls.push(new Ball(og.x, og.y, og.clr));
+  }
 }
 
 class extraLife extends PowerUp {
@@ -508,13 +571,14 @@ function draw() {
     for (const b of balls) {
       b.move();
     }
-    // ball.move();
 
     // power ups
     for (const pU of powerUps) {
       if (pU.active) {
         pU.move();
         pU.create();
+      } else if (pU.textActive) {
+        pU.animateTxt();
       } else {
         pU.remove();
       }
@@ -524,8 +588,6 @@ function draw() {
   for (const b of balls) {
     b.create();
   }
-
-  // ball.create();
 
   // bounce animations
   for (const p of particles) {

@@ -339,6 +339,7 @@ class Particle {
 }
 
 // PowerUp Classes
+
 class PowerUp {
   constructor(x, y, clr) {
     this.x = x;
@@ -442,6 +443,7 @@ class curveEffect extends PowerUp {
 }
 
 // ===== setup =====
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
@@ -479,6 +481,7 @@ function setup() {
 }
 
 // ===== draw =====
+
 function draw() {
   background(0, 150);
 

@@ -455,10 +455,12 @@ class PowerUp {
     if (this.textActive) {
       this.a = -(17 / 60) * deltaTime ** 2 + 17 * deltaTime;
       this.fill.setAlpha(this.a);
+
+      push();
       fill(this.fill);
       textAlign(CENTER, CENTER);
-      textSize(25);
       text(this.type, width / 2, height / 2);
+      pop();
       if (deltaTime >= 60) {
         this.textActive = false;
       }

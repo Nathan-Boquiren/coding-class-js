@@ -17,11 +17,10 @@ let blocks = [];
 let particles = [];
 let powerUps = [];
 
-let blockCol = 15;
 let ballSpeed = 3;
 
 // ===== Stuff and Things =====
-
+const blockCol = 15;
 const blockColors = [
   "#FF0000",
   "#FF8C00",
@@ -58,58 +57,17 @@ class Block {
   constructor(x, y, clr, width, height, row, pu) {
     this.x = x;
     this.y = y;
+
     this.width = width;
     this.height = height;
+    this.xCenter = this.x + this.width / 2;
     this.clr = clr;
     this.row = row;
-    switch (pu) {
-      // prettier-ignore
-      case "extraBall":
-        this.pu = new extraBall(
-          this.x + this.width / 2,
-          this.y,
-          this.clr,
-          pu);
-        break;
-      // prettier-ignore
-      case "extraLife":
-        this.pu = new extraLife(
-          this.x + this.width / 2,
-          this.y,
-          this.clr,
-          pu);
-        break;
-      // prettier-ignore
-      case "upGravity":
-        this.pu = new upGravity(
-          this.x + this.width / 2,
-          this.y,
-          this.clr,
-          pu);
-        break;
-      // prettier-ignore
-      case "downGravity":
-        this.pu = new downGravity(
-          this.x + this.width / 2,
-          this.y,
-          this.clr,
-          pu
-        );
-        break;
-      // prettier-ignore
-      case "curveEffect":
-        this.pu = new curveEffect(
-          this.x + this.width / 2,
-          this.y,
-          this.clr,
-          pu
-        );
-        break;
-      case null:
-        this.pu = null;
-        break;
-      default:
-        break;
+    if (pu && powerUpClasses[pu]) {
+      const PuClass = powerUpClasses[pu];
+      this.pu = new PuClass(this.x + this.width / 2, this.y, this.clr, pu);
+    } else {
+      this.pu = null;
     }
   }
   create() {
@@ -532,6 +490,13 @@ class curveEffect extends PowerUp {
   }
 }
 
+const powerUpClasses = {
+  extraBall,
+  extraLife,
+  upGravity,
+  downGravity,
+  curveEffect,
+};
 // ===== setup =====
 
 function setup() {

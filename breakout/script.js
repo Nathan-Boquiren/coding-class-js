@@ -5,7 +5,7 @@ let cl = console.log;
 // ===== Global Variables =====
 
 let gameStarted = false;
-let lives = 3;
+let lives = 5;
 let score = 0;
 
 let ball;
@@ -18,7 +18,7 @@ let particles = [];
 let powerUps = [];
 
 let blockCol = 15;
-let ballSpeed = 4;
+let ballSpeed = 3;
 
 // ===== Stuff and Things =====
 
@@ -243,7 +243,7 @@ class Ball {
       paddle.paddleAnimation(this.x);
 
       //decrease paddle width
-      paddle.w = constrain(paddle.w - 3, 40, 240);
+      paddle.w = constrain(paddle.w - 3, 50, 240);
     }
   }
 
@@ -377,7 +377,25 @@ class PowerUp {
     this.vy = 5;
     this.r = 10;
 
-    this.type = type;
+    switch (type) {
+      case "extraBall":
+        this.type = "Extra Ball!";
+        break;
+      case "extraLife":
+        this.type = "Extra Life!";
+        break;
+      case "upGravity":
+        this.type = "Negative Gravity!";
+        break;
+      case "downGravity":
+        this.type = "Gravity!";
+        break;
+      case "curveEffect":
+        this.type = "Curve Ball!";
+        break;
+      default:
+        break;
+    }
 
     this.top = this.y - this.r;
     this.btm = this.y + this.r;

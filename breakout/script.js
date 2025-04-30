@@ -3,7 +3,6 @@
 let cl = console.log;
 
 // ===== Global Variables =====
-
 let gameStarted = false;
 let lives = 5;
 let score = 0;
@@ -17,7 +16,7 @@ let blocks = [];
 let particles = [];
 let powerUps = [];
 
-let ballSpeed = 3;
+let ballSpeed = 4;
 
 // ===== Stuff and Things =====
 const blockCol = 15;
@@ -43,7 +42,6 @@ const powerUpTypes = [
   "curveEffect",
   "curveEffect",
 ];
-
 const sfx = {
   paddle: new Audio("sfx/paddle.wav"),
   block: new Audio("sfx/block.wav"),
@@ -57,7 +55,6 @@ class Block {
   constructor(x, y, clr, width, height, row, pu) {
     this.x = x;
     this.y = y;
-
     this.width = width;
     this.height = height;
     this.xCenter = this.x + this.width / 2;
@@ -65,7 +62,7 @@ class Block {
     this.row = row;
     if (pu && powerUpClasses[pu]) {
       const PuClass = powerUpClasses[pu];
-      this.pu = new PuClass(this.x + this.width / 2, this.y, this.clr, pu);
+      this.pu = new PuClass(this.x + this.width / 2, this.y, pu);
     } else {
       this.pu = null;
     }
@@ -142,14 +139,7 @@ class Ball {
     this.r = this.d / 2;
     this.grav = -1;
     this.clr = clr;
-
     this.ang = 0;
-
-    // edges
-    this.top = this.y - this.r;
-    this.btm = this.y + this.r;
-    this.left = this.x - this.r;
-    this.right = this.x + this.r;
   }
   move() {
     this.x = constrain((this.x += this.vx), this.r, width - this.r);
@@ -221,13 +211,11 @@ class Ball {
     blocks = blocks.filter((block) => {
       const closestX = constrain(this.x, block.x, block.x + block.width);
       const closestY = constrain(this.y, block.y, block.y + block.height);
-
       const dx = this.x - closestX;
       const dy = this.y - closestY;
       const distSq = dx * dx + dy * dy;
 
       if (distSq >= this.r * this.r) return true;
-
       if (abs(dx) > abs(dy)) {
         this.vx *= -1;
         this.x += dx > 0 ? this.r - abs(dx) : -(this.r - abs(dx));
@@ -235,7 +223,6 @@ class Ball {
         this.vy *= -1;
         this.y += dy > 0 ? this.r - abs(dy) : -(this.r - abs(dy));
       }
-
       if (block.pu !== null) {
         powerUps.push(block.pu);
       }
@@ -327,38 +314,22 @@ class Particle {
 // PowerUp Classes
 
 class PowerUp {
-  constructor(x, y, clr, type) {
+  static labels = {
+    extraBall: "Extra Ball!",
+    extraLife: "Extra Life!",
+    upGravity: "Negative Gravity!",
+    downGravity: "Gravity!",
+    curveEffect: "Curve Ball!",
+  };
+
+  constructor(x, y, type) {
     this.x = x;
     this.y = y;
-    this.clr = clr;
     this.vx = random(-3, 3);
     this.vy = 5;
     this.r = 10;
 
-    switch (type) {
-      case "extraBall":
-        this.type = "Extra Ball!";
-        break;
-      case "extraLife":
-        this.type = "Extra Life!";
-        break;
-      case "upGravity":
-        this.type = "Negative Gravity!";
-        break;
-      case "downGravity":
-        this.type = "Gravity!";
-        break;
-      case "curveEffect":
-        this.type = "Curve Ball!";
-        break;
-      default:
-        break;
-    }
-
-    this.top = this.y - this.r;
-    this.btm = this.y + this.r;
-    this.left = this.x - this.r;
-    this.right = this.x + this.r;
+    this.label = PowerUp.labels[type] || "";
 
     this.active = true;
     this.textActive = true;
@@ -371,16 +342,17 @@ class PowerUp {
   move() {
     this.x += this.vx;
     this.y += this.vy;
-
     this.top = this.y - this.r;
     this.btm = this.y + this.r;
     this.left = this.x - this.r;
     this.right = this.x + this.r;
 
+    if (this.left <= 0 || this.right >= width) {
+      this.vx *= -1;
+    }
     if (this.y >= height) {
       this.remove();
     }
-
     this.paddleBounce();
   }
 
@@ -401,10 +373,8 @@ class PowerUp {
       this.effect();
       this.active = false;
       playSfx("powerUp");
-
-      this.animateTxt();
-
       paddle.paddleAnimation(this.x);
+      this.animateTxt();
     }
   }
 
@@ -421,11 +391,9 @@ class PowerUp {
     strokeWeight(3);
     fill(0);
     square(this.x - 20, this.y - 20, 40, 5);
-
     textAlign(CENTER, CENTER);
     textSize(30);
     text("❓", this.x, this.y - 5);
-
     drawingContext.restore();
   }
 
@@ -442,7 +410,7 @@ class PowerUp {
       push();
       fill(this.fill);
       textAlign(CENTER, CENTER);
-      text(this.type, width / 2, height / 2);
+      text(this.label, width / 2, height / 2);
       pop();
       if (deltaTime >= 60) {
         this.textActive = false;
@@ -506,15 +474,11 @@ function setup() {
     for (let j = 0; j < blockCol; j++) {
       let blockWidth = width / blockCol;
       let blockHeight = 35;
-
       let pu = null;
-
       let rand = random();
-
       if (rand < 0.09) {
         pu = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
       }
-
       if (i !== 4) {
         blocks.push(
           new Block(
@@ -550,21 +514,19 @@ function draw() {
   text(heartStr(), width / 2 + 200, height - 50);
 
   // create blocks
-
   for (const b of blocks) {
     b.create();
   }
 
-  //   Paddle Bouncer thingy
+  // Paddle Bouncer thingy
   paddle.control();
   paddle.create();
 
-  //   Ball
+  // Ball
   if (gameStarted) {
     for (const b of balls) {
       b.move();
     }
-
     // power ups
     for (const pU of powerUps) {
       if (pU.active) {
@@ -581,7 +543,6 @@ function draw() {
   for (const b of balls) {
     b.create();
   }
-
   // bounce animations
   for (const p of particles) {
     p.animate();
@@ -664,11 +625,8 @@ function increaseScore(amount) {
 // Lives decrease
 function decreaseLives() {
   lives = constrain(lives - 1, 0, 5);
-
   gameStarted = false;
-
   powerUps.length = 0;
-
   if (lives !== 0) {
     playSfx(`life`);
     balls.length = 0;

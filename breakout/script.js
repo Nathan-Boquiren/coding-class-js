@@ -84,8 +84,7 @@ class Particle {
     this.alpha = 255;
   }
   animate() {
-    this.pos.x += this.vel.x;
-    this.pos.y += this.vel.y;
+    this.pos.add(this.vel);
     this.alpha -= 5;
 
     if (this.alpha <= 0) {
@@ -166,8 +165,9 @@ class Ball {
     this.ang = 0;
   }
   move() {
-    this.pos.x = constrain((this.pos.x += this.vel.x), this.r, width - this.r);
-    this.pos.y = constrain((this.pos.y += this.vel.y), this.r, height - this.r);
+    this.pos.add(this.vel);
+    this.pos.x = constrain(this.pos.x, this.r, width - this.r);
+    this.pos.y = constrain(this.pos.y, this.r, height - this.r);
 
     this.top = this.pos.y - this.r;
     this.btm = this.pos.y + this.r;
@@ -457,7 +457,7 @@ function setup() {
       let blockHeight = 35;
       let pu = null;
       let rand = random();
-      if (rand < 0.9) {
+      if (rand < 0.09) {
         pu = Math.floor(Math.random() * powerUpTypes.length);
       }
       if (i !== 4) {

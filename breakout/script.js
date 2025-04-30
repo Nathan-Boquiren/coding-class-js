@@ -36,7 +36,6 @@ const sfx = {
   life: new Audio("sfx/life.wav"),
   powerUp: new Audio("sfx/power-up.wav"),
 };
-
 let powerUpTypes = [];
 
 // ===== Classes =====
@@ -73,6 +72,21 @@ class Block {
     for (let i = 0; i < 100; i++) {
       particles.push(new Particle(x, y, clr));
     }
+  }
+
+  collision() {
+    if (this.pu) {
+      powerUps.push(this.pu);
+      console.log("Power-up added:", this.pu.label);
+    }
+
+    this.blockAnimation(
+      this.x + this.width / 2,
+      this.y + this.height / 2,
+      this.clr
+    );
+    playSfx("block");
+    this.remove();
   }
 }
 
@@ -127,7 +141,7 @@ class Paddle {
     this.bounceAnimation();
 
     //decrease paddle width
-    this.w = constrain(this.w - 3, 50, 240);
+    this.w = constrain(this.w - 2, 50, 240);
   }
 }
 
@@ -239,20 +253,11 @@ class Ball {
         this.pos.y += dy > 0 ? this.r - abs(dy) : -(this.r - abs(dy));
       }
 
-      if (block.pu) {
-        powerUps.push(block.pu);
-      }
+      block.collision();
 
-      block.blockAnimation(
-        block.x + block.width / 2,
-        block.y + block.height / 2,
-        block.clr
-      );
-      playSfx("block");
       const rowCleared = checkRow(block, block.row);
       increaseScore(rowCleared ? 50 : 10);
       if (rowCleared) ballSpeed += 0.5;
-      block.remove();
     }
   }
 
@@ -403,8 +408,9 @@ class PowerUp {
 
 class extraBall extends PowerUp {
   effect() {
-    let og = balls[0];
-    balls.push(new Ball(og.pos.x, og.pos.y));
+    let newBall = new Ball(this.x, this.y);
+    balls.push(newBall);
+    cl("Added ball at", this.x, this.y, "Total balls:", balls.length);
   }
 }
 
@@ -605,13 +611,15 @@ function increaseScore(amount) {
 
 // Lives decrease
 function decreaseLives() {
-  lives = constrain(lives - 1, 0, 5);
-  gameStarted = false;
-  powerUps.length = 0;
-  if (lives !== 0) {
-    playSfx(`life`);
-    balls.length = 0;
-    balls.push(new Ball());
+  if (lives > 1) {
+    lives -= 1;
+    balls[0] = new Ball();
+    powerUps.length = 0;
+    playSfx("life");
+  } else {
+    lives = 0;
+    gameStarted = false;
+    powerUps.length = 0;
   }
 }
 

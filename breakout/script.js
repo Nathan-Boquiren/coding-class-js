@@ -49,9 +49,10 @@ class Block {
     this.xCenter = this.x + this.width / 2;
     this.clr = clr;
     this.row = row;
-    if (i && powerUpTypes[i]) {
+    if (powerUpTypes[i]) {
       const PuClass = powerUpTypes[i].class;
       this.pu = new PuClass(this.x + this.width / 2, this.y, i);
+      this.newBall = powerUpTypes[i].type === "extraBall";
     } else {
       this.pu = null;
     }
@@ -75,9 +76,11 @@ class Block {
   }
 
   collision() {
-    if (this.pu) {
+    if (this.pu && !this.newBall) {
       powerUps.push(this.pu);
-      console.log("Power-up added:", this.pu.label);
+    } else if (this.pu && this.newBall) {
+      this.pu.effect();
+      this.pu.animateTxt();
     }
 
     this.blockAnimation(
@@ -139,9 +142,7 @@ class Paddle {
   collision() {
     playSfx(`paddle`);
     this.bounceAnimation();
-
-    //decrease paddle width
-    this.w = constrain(this.w - 2, 50, 240);
+    this.w = constrain(this.w - 2, 50, width);
   }
 }
 
@@ -315,6 +316,7 @@ class PowerUp {
     this.vx = random(-3, 3);
     this.vy = 5;
     this.r = 10;
+    this.type = powerUpTypes[i].type;
     this.label = powerUpTypes[i].label || "";
     this.active = true;
     this.textActive = true;
@@ -408,9 +410,7 @@ class PowerUp {
 
 class extraBall extends PowerUp {
   effect() {
-    let newBall = new Ball(this.x, this.y);
-    balls.push(newBall);
-    cl("Added ball at", this.x, this.y, "Total balls:", balls.length);
+    balls.push(new Ball(this.x, this.y));
   }
 }
 
@@ -441,6 +441,12 @@ class curveEffect extends PowerUp {
   }
 }
 
+class stretchPaddle extends PowerUp {
+  effect() {
+    paddle.w += 10;
+  }
+}
+
 powerUpTypes = [
   { type: "extraBall", label: "Extra Ball!", class: extraBall },
   { type: "extraLife", label: "Extra Life!", class: extraLife },
@@ -451,6 +457,8 @@ powerUpTypes = [
   { type: "downGravity", label: "Gravity!", class: downGravity },
   { type: "curveEffect", label: "Curve Ball!", class: curveEffect },
   { type: "curveEffect", label: "Curve Ball!", class: curveEffect },
+  { type: "stretchPaddle", label: "Stretch Paddle!", class: stretchPaddle },
+  { type: "stretchPaddle", label: "Stretch Paddle!", class: stretchPaddle },
 ];
 // ===== setup =====
 
@@ -459,12 +467,12 @@ function setup() {
 
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < blockCol; j++) {
-      let blockWidth = width / blockCol;
-      let blockHeight = 35;
+      const blockWidth = width / blockCol;
+      const blockHeight = 35;
       let pu = null;
       let rand = random();
       if (rand < 0.09) {
-        pu = Math.floor(Math.random() * powerUpTypes.length);
+        pu = floor(random(powerUpTypes.length));
       }
       if (i !== 4) {
         blocks.push(

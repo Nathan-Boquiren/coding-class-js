@@ -175,7 +175,7 @@ class Ball {
     this.vel = createVector(ballSpeed, ballSpeed * -3);
     this.d = 24;
     this.r = this.d / 2;
-    this.grav = -1;
+    this.grav = -0.8;
     this.clr = 255;
     this.ang = 0;
   }
@@ -236,7 +236,8 @@ class Ball {
   }
 
   blockBounce() {
-    for (let i = blocks.length - 1; i >= 0; i--) {
+    let collided = false;
+    for (let i = blocks.length - 1; i >= 0 && !collided; i--) {
       const block = blocks[i];
       const closestX = constrain(this.pos.x, block.x, block.x + block.width);
       const closestY = constrain(this.pos.y, block.y, block.y + block.height);
@@ -259,6 +260,8 @@ class Ball {
       const rowCleared = checkRow(block, block.row);
       increaseScore(rowCleared ? 50 : 10);
       if (rowCleared) ballSpeed += 0.5;
+
+      collided = true; // Only process one collision per frame
     }
   }
 
@@ -276,6 +279,8 @@ class Ball {
 class upBall extends Ball {
   move() {
     this.vel.y += this.grav;
+
+    this.vel.y = constrain(this.vel.y, -ballSpeed * 3, ballSpeed * 3);
     if (this.pos.y <= this.r) {
       let i = balls.indexOf(this);
       if (i !== -1) {

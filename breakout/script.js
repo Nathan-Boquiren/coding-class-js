@@ -261,7 +261,7 @@ class Ball {
       increaseScore(rowCleared ? 50 : 10);
       if (rowCleared) ballSpeed += 0.5;
 
-      collided = true; // Only process one collision per frame
+      collided = true;
     }
   }
 

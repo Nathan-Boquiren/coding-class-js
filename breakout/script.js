@@ -2,14 +2,11 @@
 
 let cl = console.log;
 
-// ===== Global Variables =====
-let gameStarted = false;
-let lives = 5;
-let score = 0;
+// ===== Variables =====
 
+let game;
 let paddle;
 let halo;
-
 let balls = [];
 let blocks = [];
 let particles = [];
@@ -39,6 +36,55 @@ const sfx = {
 let powerUpTypes = [];
 
 // ===== Classes =====
+
+class Game {
+  constructor() {
+    this.lives = 5;
+    this.score = 0;
+    this.started = false;
+  }
+  drawCenterTxt() {
+    let centerMsg = this.getCenterMsg();
+    textFont("Press Start 2P");
+    fill(255, 255);
+    if (!this.started) {
+      textAlign(CENTER, CENTER);
+      textSize(24);
+      text(centerMsg, width / 2, height / 2);
+    }
+  }
+  getCenterMsg() {
+    let msg;
+    if (this.lives <= 0) {
+      msg = "GAME OVER";
+    } else if (this.lives > 0 && blocks.length <= 0) {
+      msg = "YOU WIN!";
+    } else {
+      msg = "Click Mouse to Start Game";
+    }
+    return msg;
+  }
+  drawScoreBoard() {
+    textAlign(CENTER, CENTER);
+    text(String(this.score).padStart(4, "0"), width / 2 - 200, height - 50);
+    text("❤️".repeat(this.lives), width / 2 + 200, height - 50);
+  }
+  increaseScore(amount) {
+    this.score += amount;
+  }
+  decreaseLives() {
+    if (this.lives > 1) {
+      this.lives -= 1;
+      balls[0] = new Ball();
+      powerUps.length = 0;
+      playSfx("life");
+    } else {
+      this.lives = 0;
+      this.started = false;
+      powerUps.length = 0;
+    }
+  }
+}
 
 class Block {
   constructor(x, y, clr, width, height, row, i) {
@@ -74,7 +120,6 @@ class Block {
       particles.push(new Particle(x, y, clr));
     }
   }
-
   collision() {
     if (this.pu && !this.newBall) {
       powerUps.push(this.pu);
@@ -103,7 +148,6 @@ class Particle {
   animate() {
     this.pos.add(this.vel);
     this.alpha -= 5;
-
     if (this.alpha <= 0) {
       let i = particles.indexOf(this);
       particles.splice(i, 1);
@@ -124,21 +168,17 @@ class Paddle {
     this.y = height - 140;
     this.br = this.h / 2;
   }
-
   control() {
     this.x = constrain(mouseX - this.w / 2, 0, width - this.w);
   }
-
   create() {
     fill(255);
     noStroke();
     rect(this.x, this.y, this.w, this.h, this.br);
   }
-
   bounceAnimation() {
     halo = new PaddleHalo(this.x, this.y, this.w);
   }
-
   collision() {
     playSfx(`paddle`);
     this.bounceAnimation();
@@ -154,7 +194,6 @@ class PaddleHalo {
     this.r = this.h / 2;
     this.alpha = 200;
   }
-
   animate() {
     this.pos.x = mouseX - this.w / 2;
     this.pos.y -= 1;
@@ -193,7 +232,6 @@ class Ball {
     this.wallBounce();
     this.blockBounce();
   }
-
   paddleBounce() {
     const isColliding =
       this.btm >= paddle.y &&
@@ -222,7 +260,6 @@ class Ball {
 
     paddle.collision();
   }
-
   wallBounce() {
     if (this.left <= 0 || this.right >= width) {
       this.vel.x *= -1;
@@ -231,10 +268,9 @@ class Ball {
       this.vel.y *= -1;
     }
     if (this.btm >= height) {
-      decreaseLives();
+      game.decreaseLives();
     }
   }
-
   blockBounce() {
     let collided = false;
     for (let i = blocks.length - 1; i >= 0 && !collided; i--) {
@@ -258,13 +294,12 @@ class Ball {
       block.collision();
 
       const rowCleared = checkRow(block, block.row);
-      increaseScore(rowCleared ? 50 : 10);
+      game.increaseScore(rowCleared ? 50 : 15);
       if (rowCleared) ballSpeed += 0.5;
 
       collided = true;
     }
   }
-
   create() {
     drawingContext.save();
     drawingContext.shadowBlur = 20;
@@ -279,7 +314,6 @@ class Ball {
 class upBall extends Ball {
   move() {
     this.vel.y += this.grav;
-
     this.vel.y = constrain(this.vel.y, -ballSpeed * 3, ballSpeed * 3);
     if (this.pos.y <= this.r) {
       let i = balls.indexOf(this);
@@ -312,8 +346,6 @@ class curveBall extends Ball {
   }
 }
 
-// PowerUp Classes
-
 class PowerUp {
   constructor(x, y, i) {
     this.x = x;
@@ -330,7 +362,6 @@ class PowerUp {
     this.a = 0;
     this.fill = color(255);
   }
-
   move() {
     this.x += this.vx;
     this.y += this.vy;
@@ -347,7 +378,6 @@ class PowerUp {
     }
     this.paddleBounce();
   }
-
   paddleBounce() {
     let pTop = paddle.y;
     let pBottom = paddle.y + paddle.h;
@@ -369,12 +399,10 @@ class PowerUp {
       this.animateTxt();
     }
   }
-
   remove() {
     let i = powerUps.indexOf(this);
     powerUps.splice(i, 1);
   }
-
   create() {
     drawingContext.save();
     drawingContext.shadowBlur = 20;
@@ -388,7 +416,6 @@ class PowerUp {
     text("❓", this.x, this.y - 5);
     drawingContext.restore();
   }
-
   animateTxt() {
     if (!this.startTimeCalculated) {
       this.startTxtTime = frameCount;
@@ -409,7 +436,6 @@ class PowerUp {
       }
     }
   }
-
   effect() {}
 }
 
@@ -421,7 +447,7 @@ class extraBall extends PowerUp {
 
 class extraLife extends PowerUp {
   effect() {
-    lives++;
+    game.lives++;
   }
 }
 
@@ -465,18 +491,18 @@ powerUpTypes = [
   { type: "stretchPaddle", label: "Stretch Paddle!", class: stretchPaddle },
   { type: "stretchPaddle", label: "Stretch Paddle!", class: stretchPaddle },
 ];
+
 // ===== setup =====
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < blockCol; j++) {
       const blockWidth = width / blockCol;
       const blockHeight = 35;
       let pu = null;
       let rand = random();
-      if (rand < 0.09) {
+      if (rand < 0.1) {
         pu = floor(random(powerUpTypes.length));
       }
       if (i !== 4) {
@@ -494,7 +520,7 @@ function setup() {
       }
     }
   }
-
+  game = new Game();
   balls.push(new Ball());
   paddle = new Paddle();
 }
@@ -503,15 +529,8 @@ function setup() {
 
 function draw() {
   background(0, 150);
-
-  // Text
-  showCenterTxt();
-
-  // Score and lives text
-  textAlign(CENTER, CENTER);
-  textSize(24);
-  text(scoreStr(), width / 2 - 200, height - 50);
-  text(heartStr(), width / 2 + 200, height - 50);
+  game.drawCenterTxt();
+  game.drawScoreBoard();
 
   // create blocks
   for (const b of blocks) {
@@ -523,7 +542,7 @@ function draw() {
   paddle.create();
 
   // Ball
-  if (gameStarted) {
+  if (game.started) {
     for (const b of balls) {
       b.move();
     }
@@ -543,6 +562,7 @@ function draw() {
   for (const b of balls) {
     b.create();
   }
+
   // bounce animations
   for (const p of particles) {
     p.animate();
@@ -555,46 +575,8 @@ function draw() {
   }
 
   if (blocks.length === 0) {
-    gameStarted = false;
+    game.started = false;
   }
-}
-
-function showCenterTxt() {
-  let centerMsg = getCenterMsg();
-  textFont("Press Start 2P");
-  let txtClr = color(255);
-  txtClr.setAlpha(255);
-  fill(txtClr);
-  if (!gameStarted) {
-    textAlign(CENTER, CENTER);
-    textSize(24);
-    text(centerMsg, width / 2, height / 2);
-  }
-}
-
-function getCenterMsg() {
-  let msg;
-  if (lives <= 0) {
-    msg = "GAME OVER";
-  } else if (lives > 0 && blocks.length <= 0) {
-    msg = "YOU WIN!";
-  } else {
-    msg = "Click Mouse to Start Game";
-  }
-  return msg;
-}
-
-// Make lives and score strings
-function heartStr() {
-  let hearts = [];
-  for (let i = 0; i < lives; i++) {
-    hearts.push("❤️");
-  }
-  return hearts.join("");
-}
-
-function scoreStr() {
-  return String(score).padStart(4, "0");
 }
 
 // Check if row is complete
@@ -607,8 +589,6 @@ function checkRow(currentBlk, rowNum) {
   return true;
 }
 
-// ===== Style =====
-
 // Play SFX
 function playSfx(type) {
   if (sfx[type]) {
@@ -617,26 +597,7 @@ function playSfx(type) {
   }
 }
 
-// Score increase
-function increaseScore(amount) {
-  score += amount;
-}
-
-// Lives decrease
-function decreaseLives() {
-  if (lives > 1) {
-    lives -= 1;
-    balls[0] = new Ball();
-    powerUps.length = 0;
-    playSfx("life");
-  } else {
-    lives = 0;
-    gameStarted = false;
-    powerUps.length = 0;
-  }
-}
-
 // ===== Mouse click to start game =====
 function mouseClicked() {
-  gameStarted = true;
+  game.started = true;
 }

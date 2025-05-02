@@ -1,42 +1,3 @@
-///<reference path="../lib/p5.global.d.ts" />
-
-let cl = console.log;
-
-// ===== Variables =====
-
-let game;
-let paddle;
-let halo;
-let balls = [];
-let blocks = [];
-let particles = [];
-let powerUps = [];
-
-let ballSpeed = 4;
-
-// ===== Stuff and Things =====
-const blockCol = 15;
-const blockColors = [
-  "#FF0000",
-  "#FF8C00",
-  "#FFD700",
-  "#32CD32",
-  "",
-  "#00CED1",
-  "#1E90FF",
-  "#8A2BE2",
-  "#FF1493",
-];
-const sfx = {
-  paddle: new Audio("sfx/paddle.wav"),
-  block: new Audio("sfx/block.wav"),
-  life: new Audio("sfx/life.wav"),
-  powerUp: new Audio("sfx/power-up.wav"),
-};
-let powerUpTypes = [];
-
-// ===== Classes =====
-
 class Game {
   constructor() {
     this.lives = 5;
@@ -82,7 +43,6 @@ class Game {
       this.lives = 0;
       this.started = false;
       powerUps.length = 0;
-      balls.length = 0;
     }
   }
 }
@@ -270,9 +230,6 @@ class Ball {
     }
     if (this.btm >= height) {
       game.decreaseLives();
-      if (balls.indexOf(this) >= 1) {
-        balls.splice(balls.indexOf(this), 1);
-      }
     }
   }
   blockBounce() {
@@ -475,124 +432,4 @@ class stretchPaddle extends PowerUp {
   effect() {
     paddle.w += 10;
   }
-}
-
-powerUpTypes = [
-  { type: "extraBall", label: "Extra Ball!", class: extraBall },
-  { type: "extraLife", label: "Extra Life!", class: extraLife },
-  { type: "extraLife", label: "Extra Life!", class: extraLife },
-  { type: "upGravity", label: "Negative Gravity!", class: upGravity },
-  { type: "upGravity", label: "Negative Gravity!", class: upGravity },
-  { type: "downGravity", label: "Gravity!", class: downGravity },
-  { type: "downGravity", label: "Gravity!", class: downGravity },
-  { type: "curveEffect", label: "Curve Ball!", class: curveEffect },
-  { type: "curveEffect", label: "Curve Ball!", class: curveEffect },
-  { type: "stretchPaddle", label: "Stretch Paddle!", class: stretchPaddle },
-  { type: "stretchPaddle", label: "Stretch Paddle!", class: stretchPaddle },
-];
-
-// ===== Main Functions =====
-function setup() {
-  createCanvas(windowWidth, windowHeight);
-  for (let i = 0; i < 9; i++) {
-    for (let j = 0; j < blockCol; j++) {
-      const blockWidth = width / blockCol;
-      const blockHeight = 35;
-      let pu = null;
-      let rand = random();
-      if (rand < 0.1) {
-        pu = floor(random(powerUpTypes.length));
-      }
-      if (i !== 4) {
-        blocks.push(
-          new Block(
-            j * blockWidth,
-            i * blockHeight,
-            blockColors[i],
-            blockWidth,
-            blockHeight,
-            i + 1,
-            pu
-          )
-        );
-      }
-    }
-  }
-  game = new Game();
-  balls.push(new Ball());
-  paddle = new Paddle();
-}
-
-function draw() {
-  background(0, 150);
-  game.drawCenterTxt();
-  game.drawScoreBoard();
-
-  // create blocks
-  for (const b of blocks) {
-    b.create();
-  }
-
-  // Paddle Bouncer thingy
-  paddle.control();
-  paddle.create();
-
-  // Ball
-  if (game.started) {
-    for (const b of balls) {
-      b.move();
-    }
-    // power ups
-    for (const pU of powerUps) {
-      if (pU.active) {
-        pU.move();
-        pU.create();
-      } else if (pU.textActive) {
-        pU.animateTxt();
-      } else {
-        pU.remove();
-      }
-    }
-  }
-
-  for (const b of balls) {
-    b.create();
-  }
-
-  // bounce animations
-  for (const p of particles) {
-    p.animate();
-    p.show();
-  }
-
-  if (halo) {
-    halo.animate();
-    halo.show();
-  }
-
-  if (blocks.length === 0) {
-    game.started = false;
-  }
-}
-
-function checkRow(currentBlk, rowNum) {
-  for (let i = 0; i < blocks.length; i++) {
-    if (blocks[i] !== currentBlk && blocks[i].row === rowNum) {
-      return false;
-    }
-  }
-  return true;
-}
-
-// Play SFX
-function playSfx(type) {
-  if (sfx[type]) {
-    sfx[type].currentTime = 0;
-    sfx[type].play();
-  }
-}
-
-// ===== Start game =====
-function mouseClicked() {
-  game.started = true;
 }

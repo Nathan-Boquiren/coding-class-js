@@ -280,9 +280,7 @@ class Ball {
       const dx = this.pos.x - closestX;
       const dy = this.pos.y - closestY;
       const distSq = dx * dx + dy * dy;
-
       if (distSq >= this.r * this.r) continue;
-
       if (abs(dx) > abs(dy)) {
         this.vel.x *= -1;
         this.pos.x += dx > 0 ? this.r - abs(dx) : -(this.r - abs(dx));
@@ -290,13 +288,10 @@ class Ball {
         this.vel.y *= -1;
         this.pos.y += dy > 0 ? this.r - abs(dy) : -(this.r - abs(dy));
       }
-
       block.collision();
-
       const rowCleared = checkRow(block, block.row);
       game.increaseScore(rowCleared ? 50 : 15);
       if (rowCleared) ballSpeed += 0.5;
-
       collided = true;
     }
   }
@@ -492,8 +487,7 @@ powerUpTypes = [
   { type: "stretchPaddle", label: "Stretch Paddle!", class: stretchPaddle },
 ];
 
-// ===== setup =====
-
+// ===== Main Functions =====
 function setup() {
   createCanvas(windowWidth, windowHeight);
   for (let i = 0; i < 9; i++) {
@@ -524,8 +518,6 @@ function setup() {
   balls.push(new Ball());
   paddle = new Paddle();
 }
-
-// ===== draw =====
 
 function draw() {
   background(0, 150);
@@ -579,7 +571,6 @@ function draw() {
   }
 }
 
-// Check if row is complete
 function checkRow(currentBlk, rowNum) {
   for (let i = 0; i < blocks.length; i++) {
     if (blocks[i] !== currentBlk && blocks[i].row === rowNum) {
@@ -597,7 +588,7 @@ function playSfx(type) {
   }
 }
 
-// ===== Mouse click to start game =====
+// ===== Start game =====
 function mouseClicked() {
   game.started = true;
 }

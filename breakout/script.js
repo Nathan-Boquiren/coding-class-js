@@ -474,7 +474,7 @@ class curveEffect extends PowerUp {
 
 class stretchPaddle extends PowerUp {
   effect() {
-    paddle.w += 10;
+    paddle.w += 50;
   }
 }
 

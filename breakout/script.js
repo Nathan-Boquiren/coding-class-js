@@ -66,6 +66,7 @@ class Game {
   }
   drawScoreBoard() {
     textAlign(CENTER, CENTER);
+    textSize(24);
     text(String(this.score).padStart(4, "0"), width / 2 - 200, height - 50);
     text("❤️".repeat(this.lives), width / 2 + 200, height - 50);
   }

@@ -12,10 +12,11 @@ let blocks = [];
 let particles = [];
 let powerUps = [];
 
-let ballSpeed = 4;
+let ballSpeed = 3;
+const maxBallSpeed = 7;
 
 // ===== Stuff and Things =====
-const blockCol = 15;
+const blockCol = 4;
 const blockColors = [
   "#FF0000",
   "#FF8C00",
@@ -295,8 +296,16 @@ class Ball {
       }
       block.collision();
       const rowCleared = checkRow(block, block.row);
-      game.increaseScore(rowCleared ? 50 : 15);
-      if (rowCleared) ballSpeed += 0.5;
+
+      if (rowCleared) {
+        game.increaseScore(50);
+        const oldSpeed = ballSpeed;
+        ballSpeed = constrain(oldSpeed * 1.3, 3, maxBallSpeed);
+        const factor = ballSpeed / oldSpeed;
+        balls.forEach((b) => b.vel.mult(factor));
+      } else {
+        game.increaseScore(15);
+      }
       collided = true;
     }
   }

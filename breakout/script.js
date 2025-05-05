@@ -12,11 +12,10 @@ let blocks = [];
 let particles = [];
 let powerUps = [];
 
+// ===== Stuff and Things =====
 let ballSpeed = 3;
 const maxBallSpeed = 7;
-
-// ===== Stuff and Things =====
-const blockCol = 4;
+const blockCol = 15;
 const blockColors = [
   "#FF0000",
   "#FF8C00",
@@ -185,7 +184,7 @@ class Paddle {
   collision() {
     playSfx(`paddle`);
     this.bounceAnimation();
-    this.w = constrain(this.w - 2, 50, width);
+    this.w = constrain(this.w - 2, 100, width);
   }
 }
 
@@ -300,7 +299,7 @@ class Ball {
       if (rowCleared) {
         game.increaseScore(50);
         const oldSpeed = ballSpeed;
-        ballSpeed = constrain(oldSpeed * 1.3, 3, maxBallSpeed);
+        ballSpeed = constrain(oldSpeed * 1.13, 3, maxBallSpeed);
         const factor = ballSpeed / oldSpeed;
         balls.forEach((b) => b.vel.mult(factor));
       } else {

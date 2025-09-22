@@ -1,4 +1,4 @@
-///<reference path="../lib/p5.global.d.ts" />
+///<reference path="lib/p5.global.d.ts" />
 
 let cl = console.log;
 
@@ -16,17 +16,7 @@ let powerUps = [];
 let ballSpeed = 3;
 const maxBallSpeed = 7;
 const blockCol = 15;
-const blockColors = [
-  "#FF0000",
-  "#FF8C00",
-  "#FFD700",
-  "#32CD32",
-  "",
-  "#00CED1",
-  "#1E90FF",
-  "#8A2BE2",
-  "#FF1493",
-];
+const blockColors = ["#FF0000", "#FF8C00", "#FFD700", "#32CD32", "", "#00CED1", "#1E90FF", "#8A2BE2", "#FF1493"];
 const sfx = {
   paddle: new Audio("sfx/paddle.wav"),
   block: new Audio("sfx/block.wav"),
@@ -130,11 +120,7 @@ class Block {
       this.pu.animateTxt();
     }
 
-    this.blockAnimation(
-      this.x + this.width / 2,
-      this.y + this.height / 2,
-      this.clr
-    );
+    this.blockAnimation(this.x + this.width / 2, this.y + this.height / 2, this.clr);
     playSfx("block");
     this.remove();
   }
@@ -392,12 +378,7 @@ class PowerUp {
     let pLeft = paddle.x;
     let pRight = paddle.x + paddle.w;
 
-    let isColliding =
-      this.btm >= pTop &&
-      this.top <= pBottom &&
-      this.right >= pLeft &&
-      this.left <= pRight &&
-      this.vy > 0;
+    let isColliding = this.btm >= pTop && this.top <= pBottom && this.right >= pLeft && this.left <= pRight && this.vy > 0;
 
     if (isColliding) {
       this.effect();
@@ -513,17 +494,7 @@ function setup() {
         pu = floor(random(powerUpTypes.length));
       }
       if (i !== 4) {
-        blocks.push(
-          new Block(
-            j * blockWidth,
-            i * blockHeight,
-            blockColors[i],
-            blockWidth,
-            blockHeight,
-            i + 1,
-            pu
-          )
-        );
+        blocks.push(new Block(j * blockWidth, i * blockHeight, blockColors[i], blockWidth, blockHeight, i + 1, pu));
       }
     }
   }
